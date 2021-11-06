@@ -906,8 +906,10 @@ $\fftest(aid)[type=v,
     \begin{syntax}
         \cs{setmatrixtype} \marg{type name} \marg{begin} \marg{end}
         \cs{setmatrixtype} * \marg{type name} \marg{matrix类键选项}
-        \cs{setmatrixdata} \marg{data name} \marg{data}
+        \cs{setmatrixdata} \marg{data type} \marg{data name} \marg{data}
     \end{syntax}
+    \meta{data type} 为 \verb|item| 或 \verb|diag|，将 \meta{data} 保存，以后可以
+    在 \verb|item-data|、\verb|diag-data| 中通过 \meta{data name} 来引用。
 \end{function}
 
 
