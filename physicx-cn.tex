@@ -1,0 +1,1014 @@
+\expandafter\def\csname ver@physics.sty\endcsname{}
+\documentclass{ctxdoc}
+\usepackage{amsmath,mathtools}
+\usepackage{xcolor}
+\ExplSyntaxOn \cs_undefine:c { ver@physics.sty } \ExplSyntaxOff
+\usepackage[physics]{physicx}
+\usepackage{array,longtable,multirow}
+\usepackage{tabularray}
+\usepackage[listings,breakable]{tcolorbox}
+\usepackage{tabularx}
+\usepackage{ifthen}
+
+\def\paremph#1{\par\bigskip\noindent{\bfseries\large #1}\endgraf\medskip}
+\def\tableautorefname{表}
+\def\exampleautorefname{例}
+\NewDocumentCommand \init { v } { \hfill\texttt{初始值 = \textcolor{blue}{#1}} }
+
+\ExplSyntaxOn
+\int_new:N \l__this_tmp_int
+\tl_new:N \l__this_tmp_tl
+\newcommand\dispkeyval[2][5]{
+  \int_zero:N \l__this_tmp_int
+  \tl_clear:N \l__this_tmp_tl
+  \clist_map_inline:nn {#2}
+    {
+        \int_incr:N \l__this_tmp_int 
+        \if_int_compare:w \l__this_tmp_int < #1 \exp_stop_f:
+            \tl_put_right:Nn \l__this_tmp_tl { \opt{##1} & }
+        \else:
+            \tl_put_right:Nn \l__this_tmp_tl { \opt{##1} \\ \hline }
+            \int_zero:N \l__this_tmp_int
+        \fi:
+    }
+    \if_int_compare:w \l__this_tmp_int = 0
+    \else:
+        \prg_replicate:nn { #1 - \l__this_tmp_int - 1 }
+            { \tl_put_right:Nn \l__this_tmp_tl { & } }
+        \tl_put_right:Nn \l__this_tmp_tl { \\ \hline }
+    \fi:
+    \begin{tabularx}{\textwidth}{|*{#1}{X|}}
+        \hline
+        \l__this_tmp_tl
+    \end{tabularx}
+}
+\ExplSyntaxOff
+
+\newcounter{example}
+\tcbset{
+    example style/.style={
+        sharp corners,
+        colback=white,
+        boxrule=.4pt,
+        left=2mm,right=2mm,top=1mm,bottom=1mm,
+        before title=例 \thetcbcounter：,
+        fonttitle=\bfseries,
+        colbacktitle=white,
+        coltitle=black,
+        title={~},
+    }
+}
+\newtcblisting[use counter=example]{example}[1][]{example style,#1}
+
+\setmathfont[math-style=TeX,bold-style=TeX]{Latin Modern Math}
+\setmathfont[range={
+  \mathopen,\mathclose, % open, close
+  "2980, % fence
+  "310, "312, "315, "31A, "20E7, % accent
+  "27D5, "27D6, "27D7, "29F8, "29F9, "2A07-"2A21, % op
+  "2040, "214B, "2219, "233D, "25EB, "27C7, "27D1, "27E4, "27E5, "29B5-"29C8, % bin
+  "29CD, "29D6, "29D7, "29E2, "29EB, "29F5-"29F7, "29FA, "29FB, "29FE, "29FF, % bin
+  "2A22-"2A2E, "2A40-"2A65, "2A71, "2A72, "2AF4-"2AF6, "2AFB, "2AFD, "2AFE, % bin
+  "1B5, "3F6, "2025, "2038, "203C, "2043, "2047, "2132, "213C, "2145-"2149, "214A, % ord
+}]{XITS Math}
+\setmathfont[range={"210A, "210B, "2110, "2112, "211B, "212C, "212F, "2130, "2131, "2133, "2134, % scr, bfscr
+}]{XITS Math}
+\setmathfont[range={\mathscr,\mathbfscr}]{XITS Math}
+\setmathfont[range={"5B,"5D,
+  "1D538-"1D56B,"02102,"0210D,"02115, % bb
+  "02119,"0211A,"0211D,"02124,"0213D-"0213F, % bb
+}]{TeX Gyre Pagella Math}
+\setmathfont[range={
+  "28,"7B,"27E8,"27EA, % open
+  "29,"7D,"27E9,"27EB, % close
+  "2A09, "2A0C, % op
+  \mathcal,\mathbfcal,
+}]{Latin Modern Math}
+
+\newcommand{\cbox}[2][cyan]
+{\mathchoice
+	{\setlength{\fboxsep}{0pt}\colorbox{#1}{$\displaystyle#2$}}
+	{\setlength{\fboxsep}{0pt}\colorbox{#1}{$\textstyle#2$}}
+	{\setlength{\fboxsep}{0pt}\colorbox{#1}{$\scriptstyle#2$}}
+	{\setlength{\fboxsep}{0pt}\colorbox{#1}{$\scriptscriptstyle#2$}}
+}
+
+\newcommand{\typical}{\cbox{\phantom{A}}}
+\newcommand{\tall}{\cbox{\phantom{A^{\vphantom{x^x}}_x}}}
+\newcommand{\grande}{\cbox{\phantom{\frac{1}{xx}}}}
+\newcommand{\venti}{\cbox{\phantom{\sum_x^x}}}
+
+
+\author{雾月, Longaster\thanks{Email: longaster@163.com}}
+\title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
+\date{\today\quad v0.1}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+\section{简介}
+
+\pkg{physics} 宏包定义了一些简写的命令，但是已经9年未更新了，\pkg{physicx} 对其进行了一定的扩展，基本兼容 \pkg{physics} 原有的命令。
+
+要求：\pkg{expl3} 宏包版本至少 Released 2021-08-27，\emph{不准备兼容低版本}，尽管并不依赖某些新特性。如果使用 TeXLive，可以使用自带的控制台进行更新。如果你想兼容低版本，可以在 \href{http://www.latex-project.org/lppl.txt}{LPPL 1.3c} 协议下自行修改。
+
+
+\section{基本用法与宏包选项}
+
+\emph{太长不看版}：若仍要使用 \pkg{physics} 宏包，则使用 \opt{physics} 宏包选项，\emph{不可}再加载 \pkg{physics} 宏包，否者使用 \opt{short} 宏包选项。
+
+通常情况下，可用像使用 \pkg{physics} 宏包那样使用 \pkg{physicx} 的命令，
+它们是基本兼容的，但是 \pkg{physicx} 宏包并不依赖 \pkg{physics} 宏包，
+但目前 \pkg{physicx} 并不提供诸如 \cs{dd} 的命令，你可以使用 \opt{physics} 
+宏包选项来加载 \pkg{physics} 宏包。也可以自行加载，但必须首先
+加载 \pkg{physics} 再加载 \pkg{physicx} 宏包，一般情况下使用 \opt{physics} 
+宏包选项即可。
+
+宏包选项：\opt{compat} 将尽量兼容 \pkg{physics} 宏包。\opt{physics}：自动启用 \opt{compat} 选项并加载 \pkg{physics} 宏包。\opt{short}： 将重定义一些简写的命令。\opt{mathtools}：启用 \pkg{mathtools} 宏包定义的一些环境，如 \env{matrix*} 等。\opt{unimath}：加载 \pkg{unicode-math} 宏包并设置一些兼容操作。
+
+\section{括号，quantity}
+
+对括号类命令的修改并不多，主要增加了 \cs{oorder}、\cs{OOrder} 命令，以输出
+$\oorder{\typical}$，$\OOrder{\typical}$，它们的大小写总是固定的。
+而 \cs{order}、\cs{Order} 则会依据 \pkg{physics} 宏包是否加载、
+\opt{compat} 选项是否给定来使用大小写，若
+给定，出于兼容性考虑，\cs{order} 输出大写的 $\order{\typical}$。
+
+{\catcode`|=12
+\begin{longtable}[l]{ l l p{6cm} }
+Full & Short & Description \\
+\verb|\quantity| & \verb*|\qty(\typical) | $\displaystyle\rightarrow \qty(\typical)$ & automatic $\qty(\;)$ braces \\
+& \verb*|\qty(\tall) | $\displaystyle\rightarrow \qty(\tall)$ & \\
+& \verb*|\qty(\grande) | $\displaystyle\rightarrow \qty(\grande)$ & \\
+& \verb*|\qty[\typical] | $\rightarrow \qty[\typical]$ & automatic $\qty[\;]$ braces \\
+& \verb*+\qty|\typical| + $\rightarrow \qty|\typical|$ & automatic $\qty|\;|$ braces \\
+& \verb*|\qty{\typical} | $\rightarrow \qty{\typical}$ & automatic $\qty{\;}$ braces \\
+& \verb*|\qty<\typical> | $\rightarrow \qty<\typical>$ & automatic $\qty<\;>$ braces \\
+& \verb*|\qty=\typical= | $\rightarrow \qty=\typical=$ & automatic $\qty=\;=$ braces \\
+& \verb*|\qty\big{} | $\rightarrow \qty\big{}$ & \multirow{2}{*}{\parbox{6cm}{manual sizing (works with any of the above bracket types)}} \\
+& \verb*|\qty\Big{} | $\rightarrow \qty\Big{}$ & \\
+& \verb*|\qty\bigg{} | $\rightarrow \qty\bigg{}$ & \\
+& \verb*|\qty\Bigg{} | $\rightarrow \qty\Bigg{}$ & \\
+& \verb|\pqty{}| $\leftrightarrow$ \verb|\qty()| & \multirow{2}{*}{\parbox{6cm}{alternative syntax; robust and more \LaTeX-friendly}} \\
+& \verb|\bqty{}| $\leftrightarrow$ \verb|\qty[]| & \\
+& \verb+\vqty{}+ $\leftrightarrow$ \verb+\qty||+ & \\
+& \verb|\Bqty{}| $\leftrightarrow$ \verb|\qty{}| & \\
+\verb|\absolutevalue| & \verb|\abs{a}| $\rightarrow \abs{a}$ & automatic sizing; equivalent to \verb|\qty| \!\!\texttt{|a|} \\
+& \verb|\abs\Big{a}| $\rightarrow \abs\Big{a}$ & inherits manual sizing syntax from \verb|\qty| \\
+& \verb|\abs*{\grande}| $\displaystyle\rightarrow \abs*{\grande}$ & star for no resize \\
+\verb|\norm| & \verb|\norm{a}| $\rightarrow \norm{a}$ & automatic sizing \\
+& \verb|\norm\Big{a}| $\rightarrow \norm\Big{a}$ & manual sizing \\
+& \verb|\norm*{\grande}| $\displaystyle\rightarrow \norm*{\grande}$ & star for no resize \\
+\verb|\evaluated| & \verb|\eval{x}_0^\infty| $\displaystyle\rightarrow \eval{x}_0^\infty$ & vertical bar for evaluation limits \\
+& \verb|\eval\Big{x}_0^\infty| $\displaystyle\rightarrow \eval\Big{x}_0^\infty$ & \\
+& \verb+\eval(x|_0^\infty+ $\displaystyle\rightarrow \eval(x|_0^\infty$ & alternate form \\
+& \verb+\eval[x|_0^\infty+ $\displaystyle\rightarrow \eval[x|_0^\infty$ & alternate form \\
+& \verb+\eval[\venti|_0^\infty+ $\displaystyle\rightarrow \eval[\venti|_0^\infty$ & automatic sizing\\
+& \verb+\eval*[\venti|_0^\infty+ $\displaystyle\rightarrow \eval*[\venti|_0^\infty$ & star for no resize \\
+\verb|\order| & \verb|\order{x^2}| $\rightarrow \order{x^2}$ & order symbol; automatic sizing and space handling \\
+& \verb|\order\Big{x^2}| $\rightarrow \order\Big{x^2}$ & manual sizing \\
+& \verb|\Order{x^2}| $\rightarrow \Order{x^2}$ & manual sizing \\
+& \verb|\oorder{x^2}| $\rightarrow \oorder{x^2}$ & lowercase o \\
+& \verb|\OOrder{x^2}| $\rightarrow \OOrder{x^2}$ & uppercase O \\
+& \verb|\order*{\grande}| $\displaystyle\rightarrow \order*{\grande}$ & star for no resize \\
+\verb|\commutator| & \verb|\comm{A}{B}| $\rightarrow \comm{A}{B}$ & automatic sizing \\
+& \verb|\comm\Big{A}{B}| $\rightarrow \comm\Big{A}{B}$ & manual sizing \\
+& \verb|\comm*{A}{\grande}| $\displaystyle\rightarrow \comm*{A}{\grande}$ & star for no resize \\
+\verb|\anticommutator| & \verb|\acomm{A}{B}| $\rightarrow \acomm{A}{B}$ & same as \verb|\poissonbracket| \\
+\verb|\poissonbracket| & \verb|\pb{A}{B}| $\rightarrow \pb{A}{B}$ & same as \verb|\anticommutator|
+\end{longtable}
+}
+
+出于兼容性考量，仍然保留了 \cs{matrixquantity}（\cs{mqty}）、
+\cs{smallmatrixquanity} （\cs{smqty}）命令的定义，它们与 \cs{quantity} 命令
+相似，只是将它们的值放入相应的矩阵中。可以使用更高级的矩阵命令，
+见第 \ref{sec:matrixes} 节。
+
+你还可以自定义quantity类命令，见第 \ref{sec:others} 节。
+
+\section{矩阵，matrix}\label{sec:matrixes}
+
+\pkg{physicx} 宏包极大地扩展了 \pkg{physics} 原有的矩阵类命令。提供了丰富的
+键值接口来设置矩阵。
+
+定义了三个基本命令：\cs{genegralmatrix}、\cs{commamatrix}、\cs{diagonalmatrix}，及 \cs{qxmatrix}。
+
+\begin{example}[title=\cs{diagonalmatrix}]
+$\diagonalmatrix{1,2,3,4}$,
+$\diagonalmatrix[p]{1,2,3,4}$,
+$\diagonalmatrix[p]{0={1,2,3,4},2={22,33},'-2={-22,-33}}$,
+$\diagonalmatrix[p,empty=\Box]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
+
+$\diagonalmatrix[p,empty=\Box,
+  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
+  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
+]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
+$\diagonalmatrix[transpose,p,empty=\Box]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
+$\diagonalmatrix[transpose,p,empty=\Box,
+  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
+  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
+]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
+\end{example}
+
+\begin{example}[title=\cs{commamatrix}]
+$\commamatrix{1, 2, 3, 4}$,\quad
+$\commamatrix[b]{1, 2, 3, 4}$,\quad
+$\commamatrix{1; 2; 3; 4}$,\quad
+$\commamatrix[b]{1; 2; 3; 4}$,\quad
+$\commamatrix[b]{1, 2; 3, 4}$,\quad
+$\commamatrix[b]{1 & 2 \\ 3, 4; 5, 6}$,\quad
+\end{example}
+
+\begin{example}[title=\cs{generalmatrix}]
+$\generalmatrix{p}{A}{m}{n}$,
+$\generalmatrix{v}{A}{3}{3}$,
+$\generalmatrix*{p}{A}{3}{3}$,
+\end{example}
+
+\subsection{diagonalmatrix}
+
+diagonalmatrix，即对角矩阵。
+
+\begin{function}{\diagonalmatrix}
+    \begin{syntax}
+        \cs{diagonalmatrix} \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix} = \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix} + \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix} = + \oarg{matrix类键值选项} \marg{diag键选项}
+    \end{syntax}
+    \verb|=| 开启保存模式，即不输出计算的矩阵，而将其全局保存至 
+    \cs{physicxtmp} 宏中，将其扩展一次即可得到矩阵的值（不包括外部的 
+    \verb|\begin{matrix}| 等）。
+
+    \verb|=| 将覆盖 \opt{saveto} 和 \opt{saveto*} 键的设置，即总是将矩阵保存
+    到 \cs{physicxtmp} 中，而不管 \opt{saveto} 和 \opt{saveto*} 的设置。
+
+    \verb|+| 启用 \opt{enhanced} 模式，在该模式下能使用更多的键值选项，但速度相较而言慢些。
+\end{function}
+
+\paremph{\opt{diag}键选项：}
+
+\begin{function}{
+    auto-update,
+    noauto-update,
+    true,
+    false,
+    0,
+    1,
+    -1,
+    '1,
+    '-1,
+    ...,
+}
+    \opt{auto-update} 将自动更新矩阵的行数和列数，使得给出的元素总是完整地出现在矩阵中。
+
+    \opt{true} 在设置主对角线元素的同时设置矩阵的行数和列数为主对角线元素个数。行数和列数可以被后续的处理更改。
+
+    数字键将设置矩阵的对角元素的值。对角元素的位置是当前矩阵的相应元素的位置。
+
+    不带 “ \texttt' ” 的设置主对角线元素，即“∖”，带 “ \texttt' ” 设置
+    副对角线元素，即“∕”。正数为上方，负数为下方。
+    
+    注意副对角线元素的设置依赖矩阵的大小，即矩阵的行数和
+    列数，在设置副对角线元素时行数和列数必须被直接或间接地设置。
+
+    当 \meta{diag键选项} 不为键值对时，则将其设置为主对角线元素。
+
+    这个矩阵命令自动更新 \opt{MaxMatrixCols} 计数器，即矩阵最大的列数。
+\end{function}
+
+见下方的几个例子。
+\begin{example}
+$\diagonalmatrix[v,empty=\Box]{a,b,c,d}$ \ 
+$\diagonalmatrix[v,empty=\Box]{ 0={a,b,c,d} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{auto-update, 2={a,b,c,d} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ 2={a,b,c,d} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{auto-update, '0={a,b,c,d} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ '0={a,b,c,d} }$
+\end{example}
+
+\begin{example}
+$\diagonalmatrix[v,empty=\Box]{ 0={a,b,c,d}, 1={h,j,j} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ 0={a,b,c,d}, 1={h,j,j,k} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ auto-update, 0={a,b,c,d}, 1={h,j,j,k} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ auto-update, 0={a,b,c,d}, 1={h,j,j,k} ,-4={m}}$ \ 
+\end{example}
+
+\begin{example}
+$\diagonalmatrix[v,empty=\Box]{ 0={1,2,3,4}, -1={11,22,33}, '-1={p,pp,ppp} }$ \ 
+$\diagonalmatrix[v,empty=\Box]{ 0={1,2,3,4}, 2=A, -1={\sum,\cup,\prod}, '-1={\int,\oint_a^n} }$ \ 
+$\diagonalmatrix[v,empty=\Box,sep=\C]{ 0=1 \C 2 \C 3 \C 4, 2=A, -1=\sum \C \cup \C \prod, '-1=\int \C \oint_a^n }$ \ 
+
+$\diagonalmatrix=[v,empty=\Box,sep=\C]{ 0=1 \C 2 \C 3 \C 4, 2=A, -1=\sum \C \cup \C \prod, '-1=\int \C \oint_a^n }$ \ 
+{\ttfamily\meaning\physicxtmp}
+\end{example}
+
+\paremph{\cs{diagonalmatrix} 中可用的 \opt{matrix} 类键值选项：}
+
+见\autoref{tab:diag}，它们的具体用法见第 \ref{sec:keyvals} 节。
+
+\begin{table}[!htp]
+\caption{}\label{tab:diag}
+\dispkeyval{
+    expand,
+    rows,
+    cols,
+    auto-update,
+    empty,
+    check,
+    diag,
+    diag+,
+    diag-now,
+    diag-data,
+    item,
+    item+,
+    item-now,
+    item-data,
+    check-range,
+    begin,
+    end,
+    args,
+    args*,
+    after-begin,
+    after-begin+,
+    after-end,
+    after-end+,
+    sepdim,
+    type,
+    saveto,
+    saveto*,
+    transpose,
+    ',
+    T,
+    MaxMatrixCols,
+    enhanced,
+    !enhanced,
+    sep,
+    adi-order,
+    beginning,
+    beginning+,
+    ending,
+    ending+,
+}
+\end{table}
+
+\meta{diag键选项} 设置的即是 \opt{diag} 键。
+
+\paremph{\opt{enhanced} 模式下增加的可用键值：}
+
+\noindent
+\dispkeyval[4]{
+    row-list,
+    col-list,
+    element-code,
+    element-code*,
+    element-except,
+    element-except+,
+    expand-element,
+    row-iterate,
+    col-iterate,
+}
+
+
+\subsection{commamatrix}
+
+commamatrix，即逗号分隔的矩阵。
+
+\begin{function}{\commamatrix}
+    \begin{syntax}
+        \cs{commamatrix}     \oarg{matrix类键值选项} \marg{矩阵元素}
+        \cs{commamatrix} =   \oarg{matrix类键值选项} \marg{矩阵元素}
+        \cs{commamatrix}   + \oarg{matrix类键值选项} \marg{矩阵元素}
+        \cs{commamatrix} = + \oarg{matrix类键值选项} \marg{矩阵元素}
+    \end{syntax}
+
+    \opt{=}、\opt{+} 的功能同 \cs{diagonalmatrix}。
+
+    在非 enhanced 模式下，做的工作仅仅是把 align 分隔符替换为 \verb|&|，把
+    cr 分隔符替换为 \verb|\\|，功能有限，但速度更快。
+
+    这个矩阵命令\emph{不会}自动更新 \opt{MaxMatrixCols} 计数器，需要通过 \opt{MaxMatrixCols} 键设置，或通过 \tn{setcounter} 设置。
+\end{function}
+
+见下方的几个例子。
+
+\begin{example}
+$\commamatrix[b]{a,b;c,d}$ \ 
+$\commamatrix[b]{ {a,b} ; c,d}$ \ 
+$\commamatrix[b]{a & b \\ c & d}$ \ 
+$\commamatrix[b]{a, b & c \\ d & e, f}$ \ 
+$\commamatrix[b, align=\T, cr=\N]{a \T b \T c \N d \T e \T f}$ \ 
+$\commamatrix[b, align=\T, cr=\N]{a,a \T b;b \T c \N d \T e \T f}$ \ 
+
+$\commamatrix=[b, align=\T, cr=\N]{a \T b \T c \N d \T e \T f}$ \ 
+{\ttfamily\meaning\physicxtmp}
+\end{example}
+
+\paremph{\cs{commamatrix} 可用的键值选项：}
+见\autoref{tab:comma}，具体用法见第 \ref{sec:keyvals} 节。
+
+\begin{table}[!htp]
+\caption{}\label{tab:comma}
+\dispkeyval{
+    array,
+    expand,
+    rows,
+    cols,
+    check-range,
+    begin,
+    end,
+    args,
+    args*,
+    after-begin,
+    after-end,
+    sepdim,
+    type,
+    save-to,
+    save-to*,
+    MaxMatrixCols,
+    enhanced,
+    !enhanced,
+    cr,
+    align,
+}
+\end{table}
+
+\meta{矩阵元素} 设置的即是 \opt{array} 键。
+
+\paremph{\opt{enhanced} 模式下增加的键值选项：}
+
+\noindent
+\dispkeyval[4]{
+    row-list,
+    col-list,
+    element-code,
+    element-code*,
+    element-except,
+    element-except+,
+    expand-element,
+    row-iterate,
+    col-iterate,
+}
+
+
+\subsection{qxmatrix}
+
+\cs{qxmatrix} 扩展的 \cs{xmatrix}。
+
+\begin{function}{\qxmatrix}
+    \begin{syntax}
+        \cs{qxmatrix}     \oarg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{qxmatrix}   * \oarg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{qxmatrix} =   \oarg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{qxmatrix} = * \oarg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+    \end{syntax}
+
+    \opt{=} 的作用同前所述。
+
+    \opt{*} 输出无穷维矩阵，即在最后的行和列添加 $\cdots$ $\vdots$ $\ddots$。
+\end{function}
+
+见如下几个例子。
+
+\begin{example}
+$\qxmatrix{A}{3}{3}$ \ 
+$\qxmatrix{A}{7}[3]{9}[3]$ \ 
+$\qxmatrix{A}{m}[2]{n}[2]$ \ 
+
+$\qxmatrix[m]{A}{m}[2]{n}[2]$ \ 
+$\qxmatrix*{A}{m}[2]{n}[2]$ \ 
+$\qxmatrix[
+    element-code=\displaystyle\pdv{#1_{#2}}{x_{#3}},
+    sepdim=2ex,
+    p,
+  ]{A}{m}[2]{n}[2]$ \ 
+\end{example}
+
+\begin{example}
+\newcommand{\twotwomat}[2][]{\qxmatrix[type=#2,#1]{A}{n}[2]{n}[2]}
+\setmatrixtype*{jacobian}{
+    element-code=\displaystyle\pdv{##1_{##2}}{x_{##3}},
+    sepdim=2ex}
+$\twotwomat[p]{jacobian}$
+\setmatrixtype*{parenmat}{ element-code=##1_{##2}(x_{##3}) }
+$\twotwomat{parenmat}$
+
+\setmatrixtype*{plusmain}{ element-code={
+    \ifthenelse{\equal{##2}{##3}}{1+}{}##1_{##2}(x_{##3})
+} }
+$\twotwomat[v]{plusmain}$
+\end{example}
+
+一个稍复杂的例子：
+\begin{example}[]
+% \usepackage{ifthen}
+\def\hessianaux#1{
+  \def\twopartital##1##2##3{%
+    \displaystyle\ifthenelse{\equal{##2}{##3}}
+      {\pdv[2]{##1}{#1_{##2}}}
+      {\pdv{##1}{#1_{##2}}{#1_{##3}}}}}
+\newcommand{\hessian}[4][]{%
+  \hessianaux{#3}%
+  \qxmatrix[element-code*=twopartital,#1]{#2}{#4}[1]{#4}[1]}
+$\hessian[v,sepdim=1ex]{f}{x}{m}$
+$\hessian[b,sepdim=1ex]{\mathcal{H}}{p}{n}$
+\end{example}
+
+\paremph{\cs{qxmatrix} 可用的键值选项：}
+见\autoref{tab:qxmatrix}，具体用法见第 \ref{sec:keyvals} 节。
+
+\begin{table}[!htp]
+\caption{}\label{tab:qxmatrix}
+\dispkeyval[4]{
+    array,
+    expand,
+    rows,
+    cols,
+    auto-update,
+    main,
+    row-list,
+    col-list,
+    infinite,
+    !infinite,
+    element-code,
+    element-code*,
+    element-except,
+    element-except+,
+    expand-element,
+    row-iterate,
+    col-iterate,
+    begin,
+    end,
+    args,
+    args*,
+    sepdim,
+    type,
+    saveto,
+    saveto*,
+    MaxMatrixCols,
+}
+\end{table}
+
+\subsection{genegralmatrix}
+
+generalmatrix，即通用矩阵命令。
+
+\begin{function}{\generalmatrix}
+    \begin{syntax}
+        \cs{generalmatrix}   +   \marg{matrix类键值选项}
+        \cs{generalmatrix} = +   \marg{matrix类键值选项}
+        \cs{generalmatrix}   + * \marg{matrix类键值选项}
+        \cs{generalmatrix} = + * \marg{matrix类键值选项}
+        \cs{generalmatrix}     \marg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{generalmatrix} =   \marg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{generalmatrix}   * \marg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+        \cs{generalmatrix} = * \marg{matrix类键值选项} \marg{main} \marg{last row} \oarg{row} \marg{last col} \oarg{col}
+    \end{syntax}
+
+    不带 \opt{+} 的命令就是 \cs{qxmatrix} 命令，不过其第一个参数是必须用 \verb|{ }| 给定的。
+\end{function}
+
+
+\subsection{matrix类通用键值选项}\label{sec:keyvals}
+
+\begin{function}{array}
+\end{function}
+
+\begin{function}{expand}
+    \begin{syntax}
+        expand = <none|text-expand|f|romanual|x|edef> \init{none}
+    \end{syntax}
+    对输入的元素进行扩展，即先对 \opt{array}、\opt{diag}、\opt{item} 扩展，再进行处理。
+\end{function}
+
+\begin{function}{rows,cols}
+    \begin{syntax}
+        rows = \meta{整数}
+        cols = \meta{整数}
+    \end{syntax}
+\end{function}
+
+\begin{function}{auto-update}
+    \begin{syntax}
+        auto-update = \TTF \init{false}
+    \end{syntax}
+    是否自动更新行数和列数。
+\end{function}
+
+\begin{function}{main}
+\end{function}
+
+\begin{function}{row-list, col-list}
+    设置相应行、列的角标。
+\end{function}
+
+\begin{function}{infinite,!infinite}
+    是否无穷维矩阵。
+\end{function}
+
+\begin{function}{element-code, element-code*}
+    \begin{syntax}
+        element-code  = \marg{code}
+        element-code* = <except-empty|except-dots|except-tl|except-regex|only-regex|\meta{macro name}>
+    \end{syntax}
+    \opt{element-code} 使用三个参数，分别为 \verb|main|、\verb|行角标|、\verb|列角标|。
+\end{function}
+
+\begin{function}{element-except,element-except+}
+\end{function}
+
+\begin{function}{expand-element}
+    \begin{syntax}
+        expand-element = \TTF \init{false}
+    \end{syntax}
+    是否对生成的矩阵值进行扩展，一般情况是不需要的，当使用 \opt{saveto} 保存到宏中，则可能需要启用该选项。
+\end{function}
+
+\begin{function}{empty}
+    当矩阵的某元素未被设置时，使用其值设置之。
+\end{function}
+
+\begin{function}{check}
+    \begin{syntax}
+        check = <none|empty|ignore|igep|all>
+    \end{syntax}
+    是否对输入的元素进行检查。
+
+    \opt{empty} 选项检查当输入的元素为空时，使用 \opt{empty} 键的值替换之。
+
+    \opt{ignore} 检查当输入的元素为 \cs{PHYSICXIGNORE} 时，不对该元素进行设置操作。
+
+    \opt{igep} 对 \opt{empty} 和 \opt{ignore} 进行检查。
+\end{function}
+
+\begin{function}{row-iterate,col-iterate}
+    设置行、列的角标的索引方法，它们接收一个参数，分别代表对应元素的行索引和列索引。
+\end{function}
+
+\begin{function}{last-row,last-col}
+\end{function}
+
+\begin{function}{diag,diag+,diag-now,diag-data,diag-data+}
+    \begin{syntax}
+        diag  = \marg{diag 键选项}
+        diag+ = \marg{diag 键选项}
+        diag-now = \marg{diag 键选项}
+        diag-data  = \marg{预先定义的diag数据}
+        diag-data+ = \marg{预先定义的diag数据}
+    \end{syntax}
+    \opt{diag-now} 立即解析给出的 \meta{diag 键选项}，不待 \opt{adi} 处理，或 \opt{adi} 处理完毕后还需设置矩阵元素。可用于 \opt{beginning}、\opt{ending} 键中进行额外的设置。
+
+    \opt{diag-data} 可使用 \cs{setmatrixdata} 设置的数据，见第 \ref{sec:others} 节。
+\end{function}
+
+\begin{function}{item,item+,item-now,item-data,item-data+}
+\end{function}
+
+\begin{function}{check-range}
+    \begin{syntax}
+        check-range = \TTF \init{true}
+    \end{syntax}
+    当解析 \opt{item} 选项时，是否检查元素索引越界，为真时，不设置越界元素。
+\end{function}
+
+\begin{function}{begin,end}
+    \begin{syntax}
+        begin = \marg{code}
+        end   = \marg{code}
+    \end{syntax}
+    设置输出矩阵时使用的环境。一般为 \verb|begin=\begin{matrix}|，
+    \verb|end=\end{matrix}|。
+
+    但是可以是任意代码，一般情况下 \opt{begin} 和 \opt{end} 需配对。
+\end{function}
+
+\begin{function}{args, args*}
+    \begin{syntax}
+        args  = \meta{code}
+        args* = \meta{code}
+    \end{syntax}
+    当 \opt{begin} 键使用的环境需要参数时，可使用这个键设置。
+
+    \opt{args} 设置方括号括起来的参数，将 \oarg{code} 放到 \opt{begin} 键的代码之后。
+
+    \opt{args*} 将 \meta{code} 放到 \opt{begin} 键的代码之后。
+
+    如：\verb|begin=\begin{matrix*}|，\verb|args=c|，则为 \verb|\begin{matrix*}[c]|。
+
+    \verb|begin=\begin{array}|，\verb|args*={[t]{ccc}}|，则为 \verb|\begin{array}[t]{ccc}|。
+\end{function}
+
+\begin{function}{after-begin,after-begin+,after-end,after-end+}
+\end{function}
+
+\begin{function}{sepdim}
+    \begin{syntax}
+        sepdim = \meta{dim} \init{0pt}
+    \end{syntax}
+\end{function}
+
+\begin{function}{type}
+    \begin{syntax}
+        type = <m|p|b|B|v|V|sm|...> \init{m}
+    \end{syntax}
+    设置输出矩阵的类型。\opt{m} 使用 \env{matrix} 环境，\opt{p} 使用 \env{pmatrix} 环境，等。
+
+    当加载了 \pkg{mathtools} 宏包或使用了 \opt{mathtools} 宏包选项时，还额外定义了 \opt{m*} 和 \opt{sm*}、\opt{sp}、\opt{sp*} 等环境，它们代表 \env{martix*}、\env{smallmatrix*}、\opt{psmallmatrix} 等环境。
+
+    还可使用由 \cs{setmatrixtype} 定义的类型。见第 \ref{sec:others} 节。
+
+    一般情况下，如果 \opt{type} 的值与 matrix 类的键没有相同的名字，则可省略 \opt{type}，直接写它的值。不能保证未来版本不会增加新的键，若要使得简写仍然有效，应该保证它的名字比较特别，使得出现相同键名的概率低。
+\end{function}
+
+\begin{function}{saveto,saveto*}
+    \begin{syntax}
+        saveto  = \cs{\meta{macro name}}
+        saveto* = \meta{macro name}
+    \end{syntax}
+    将矩阵的值保存到相应的宏中。
+\end{function}
+
+\begin{function}{transpose,',T}
+    \begin{syntax}
+        transpose = \TTF \init{false}
+    \end{syntax}
+    为真，则将矩阵元素转置，不对角标转置。
+\end{function}
+
+\begin{function}{MaxMatrixCols}
+    \begin{syntax}
+        MaxMatrixCols = \meta{整数}
+    \end{syntax}
+    设置 \opt{MaxMatrixCols} 计数器的值。一般情况下无需给出键名，直接使用 \meta{整数} 即可。
+\end{function}
+
+\begin{function}{enhanced}
+    \begin{syntax}
+        enhanced = \TTF \init{false}
+        !enhanced
+    \end{syntax}
+    是否启用 \opt{enhanced} 模式。
+\end{function}
+
+\begin{function}{cr,align,sep}
+    \begin{syntax}
+        cr    = \meta{符号} \init{;}
+        align = \meta{符号} \init{,}
+        sep   = \meta{符号} \init{,}
+    \end{syntax}
+    设置分隔符。\meta{符号} 可以是任意记号，不会对其进行展开。
+
+    \opt{sep} 设置 \opt{diag}、\opt{row-list}、\opt{col-list} 的分隔符。
+
+    \opt{cr} 设置换行（\verb|\\|）对应的符号。\opt{align} 设置 align （\verb|&|）对应的符号，用于 \opt{array} 键或 \cs{commamatrix} 中。
+\end{function}
+
+\begin{function}{adi-order}
+    \begin{syntax}
+        adi-order = <adi|dia|iad|aid|ida|dai> \init{adi}
+    \end{syntax}
+    设置 \opt{array}/\opt{main}、\opt{diag}、\opt{item} 的处理顺序。
+\end{function}
+
+\begin{function}{beginning,beginning+,ending,ending+}
+    设置在 \opt{adi} 处理前后要执行的代码，可以是任意代码，一般用于设置。
+\end{function}
+
+
+\subsection{例子}\label{sec:matrix-example}
+
+\begin{example}[]
+$\commamatrix[
+  begin=\begin{array},end=\end{array},args*={{clr}}, % two {{ }}
+]{A, E, I; MNOP, QRST, UVWX}$
+$\commamatrix[
+  begin=\left[\begin{array}, end=\end{array}\right], args*={{clr}},
+]{A, E, I; MNOP, QRST, UVWX}$
+\end{example}
+
+\begin{example}[]
+$\generalmatrix+{rows=5,cols=4,main=A}$
+$\generalmatrix+{array={ 1,2,3,4; a,b,c,d; \oplus,\otimes,\cup,\spadesuit },rows=3,cols=4,type=p}$
+$\generalmatrix+{
+  array={ 1,2,3,4; a,b,c,d; \oplus,\otimes,\cup,\spadesuit },
+  type=p,auto-update
+}$
+\end{example}
+
+\begin{example}[]
+$\generalmatrix + {
+  array={ 1,2,3,4; a,b,c,d; \oplus,\otimes,\cup,\spadesuit },
+  type=v,rows=3,cols=4,
+  row-list={A,B,C}, col-list={\blacklozenge,\Box,\heartsuit}
+}$
+$\generalmatrix + * {
+  array={ 1,2,3,4; a,b,c,d; \oplus,\otimes,\cup,\spadesuit },
+  type=v,rows=3,cols=4,
+  row-list={A,B,C}, col-list={\blacklozenge,\Box,\heartsuit}
+}$
+$\generalmatrix + * {
+  array={ 1,2,3,4; a,b,c,d; \oplus,\otimes,\cup,\spadesuit },
+  type=v,rows=3,cols=4, element-code*=except-dots,
+  row-list={A,B,C}, col-list={\blacklozenge,\Box,\heartsuit}
+}$
+\end{example}
+
+\begin{example}[]
+$\generalmatrix + {
+  rows=5,cols=5,type=v,
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+}$
+$\generalmatrix + {
+  rows=5,cols=5,type=v, element-code={#1},
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+}$
+$\generalmatrix + {
+  rows=5,cols=5,type=v, element-code={#1},
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+  item={ {1,3}{2,4}=\Box },
+}$
+\end{example}
+
+\begin{example}[label=eg:newgeneralmatrix,]
+% new a \generalmatrix command, use enhanced mode, with 1 arg
+\newgeneralmatrix + \ffempty [1] { rows=5,cols=5,element-code={##1},type=v, #1 }
+$\ffempty{ main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} } }$
+$\ffempty{ 
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+  item={ {1,3}{2,4}=\Box }
+}$
+$\ffempty{ 
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+  item={ 
+    {1,3}{2,4}=\Box, % (1,2), (1,4), (3,2), (3,4) = \Box
+    {4}{5}=\PHYSICXIGNORE, % ignore setting of (4,5)
+    {-}{5}=\blacksquare, % col=5
+    {4}{-}=\heartsuit, % row=4
+  }
+}$
+\end{example}
+
+\begin{example}[label=eg:NewGeneralMatrix,]
+% xparse-like new command
+\NewGeneralMatrix + \fftest { D(){adi} O{} } { 
+  rows=5,cols=5, element-code={##1},
+  main=A, diag={ 0={1,2,3,4,5,6}, '0={-1,-2,-3,-4,-5,-6} },
+  item={ 
+    {1,3}{2,4}=\Box, % (1,2), (1,4), (3,2), (3,4) = \Box
+    {4}{5}=\PHYSICXIGNORE, % ignore setting of (4,5)
+    {-}{5}=\blacksquare, % col=5
+    {4}{-}=\heartsuit, % row=4
+  }, adi-order=#1, #2 }
+
+$\fftest[type=v]$      % adi-order=adi, process order: array/main, diag, item
+$\fftest(aid)[type=v]$ % adi-order=aid, process order: array/main, item, diag
+$\fftest(aid)[type=v,
+  diag+={ 2={HH,II,JJ}, -2={ , , } }, % add to diag
+  item+={ {4}{1}={ } }, % add to item
+  ending=\physicxset*{matrix}{ item-now={ {4}{4}=\fbox{LL} } }, % set item at ending
+]$
+
+$\fftest(aid)[type=v,
+  diag+={ 2={HH,II,JJ}, -2={ , , } },
+  item+={ {4}{1}={ } },
+  ending=\physicxset*{matrix}{ item-now={ {4}{4}=\fbox{LL} } },
+  saveto=\savetosomething,
+]$
+{\ttfamily\meaning\savetosomething}
+\end{example}
+
+
+\section{杂项}\label{sec:others}
+
+\begin{function}{\physicxset}
+    \begin{syntax}
+        \cs{physicxset} \marg{通用键值选项}
+        \cs{physicxset} * \marg{类型} \marg{类型可用的键值选项}
+    \end{syntax}
+    \pkg{physicx} 宏包的设置命令。
+
+    \meta{类型} 为 \opt{matrix} 等。
+\end{function}
+
+\begin{variable}{\physicxtmp,\physicxempty,\physicxexcept,\PHYSICXIGNORE}
+    \cs{physicxempty} 保存 \opt{empty} 键的值。
+    \cs{physicxexcept} 保存 \opt{element-except} 的值。
+
+    永远不要在正文中使用 \cs{PHYSICXIGNORE}。仅应 \opt{diag}、\opt{item}
+    键的设置中使用。
+\end{variable}
+
+\begin{function}{\setmatrixtype,\setmatrixdata}
+    \begin{syntax}
+        \cs{setmatrixtype} \marg{type name} \marg{begin} \marg{end}
+        \cs{setmatrixtype} * \marg{type name} \marg{matrix类键选项}
+        \cs{setmatrixdata} \marg{data name} \marg{data}
+    \end{syntax}
+\end{function}
+
+
+\subsection{定义新的括号命令}
+
+\begin{function}{\@declarequantitycmd,\@declareparencmd}
+    \begin{syntax}
+        \cs{@declarequantitycmd} 0/1 0/1 \cs{\meta{cmd}} \marg{code}
+        \cs{@declareparencmd} \cs{\meta{cmd}} \marg{arg spec} \marg{replace} \marg{pre code} \meta{left} \meta{right} \marg{post}
+    \end{syntax}
+\end{function}
+
+由 \cs{@declarequantitycmd} 命令定义的quantity命令，其后除可使用 \tn{big}、\tn{Big} 等命令外，也支持任意命令。
+
+由 \cs{@declareparencmd} 命令定义的quantity命令，其后仅可使用 \tn{big}、\tn{Big}、\tn{bigg}、\tn{Bigg}这四个命令。
+
+几个个例子：
+
+\begin{example}[listing only]
+% \catcode`\ =9 \catcode`\@=11
+\@declarequantitycmd 1 1 \quantity
+  {
+    { !g   } { { \{      } { #4 } { \}      } }
+    { !o   } { { [       } { #5 } { ]       } }
+    { !d() } { { (       } { #6 } { )       } }
+    { !d|| } { { \vert   } { #7 } { \vert   } }
+    { !d<> } { { \langle } { #8 } { \rangle } }
+    { !d== } { { \Vert   } { #9 } { \Vert   } }
+  }
+\@declarequantitycmd 1 0 \matrixquantity
+  {
+    { !g }
+      {
+        { \IfBooleanT{#3}{\left\{} }
+        { \begin{matrix} #4 \end{matrix} }
+        { \IfBooleanT{#3}{\right\}} } 
+      }
+    { !o }   { {\begin{bmatrix} } {#5} { \end{bmatrix} } }
+    { !d() }
+      {
+        { \IfBooleanTF{#3}{\left\lgroup}{\left(} }
+        { \begin{matrix} #6 \end{matrix} }
+        { \IfBooleanTF{#3}{\right\rgroup}{\right)} }
+      }
+    { !d|| } { { \begin{vmatrix} } {#7} { \end{vmatrix} } }
+    { !d<> } { { \left\langle } { \begin{matrix} #8 \end{matrix} } { \right\rangle } }
+    { !d== } { { \begin{Vmatrix} } {#9} { \end{Vmatrix} } }
+  }
+\end{example}
+
+\begin{example}[listing only]
+% \catcode`\ =9 \catcode`\@=11
+\@declareparencmd \pqty { m } {#6} { } ( ) { }
+\@declareparencmd \absolutevalue { m } {#6} { } \vert \vert { }
+\@declareparencmd \OOrder { m } {#6} { \mathcal{O} } ( ) { }
+\@declareparencmd \commutator { m m } { #6 , #7 } { } [ ] { }
+\end{example}
+
+
+\subsection{定义新的矩阵命令}
+
+\begin{function}{
+    \newdiagonalmatrix,
+    \NewDiagonalMatrix,
+    \newcommamatrix,
+    \NewCommaMatrix,
+    \newgeneralmatrix,
+    \NewGeneralMatrix
+}
+    \begin{syntax}
+        \cs{newdiagonalmatrix}   \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys} \marg{diag keys}
+        \cs{newdiagonalmatrix} + \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys} \marg{diag keys}
+        \cs{NewDiagonalMatrix}   \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys} \marg{diag keys}
+        \cs{NewDiagonalMatrix} + \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys} \marg{diag keys}
+        ~
+        \cs{newcommamatrix}      \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys} \marg{comma value}
+        \cs{newcommamatrix}    + \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys} \marg{comma value}
+        \cs{NewCommaMatrix}      \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys} \marg{comma value}
+        \cs{NewCommaMatrix}    + \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys} \marg{comma value}
+        ~
+        \cs{newgeneralmatrix}    \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys}
+        \cs{newgeneralmatrix}  + \cs{\meta{cmd}} \oarg{arg nums}  \oarg{default} \marg{matrix keys}
+        \cs{NewGeneralMatrix}    \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys}
+        \cs{NewGeneralMatrix}  + \cs{\meta{cmd}} \marg{args spec} \marg{matrix keys}
+    \end{syntax}
+\end{function}
+
+\begin{example}[]
+\newdiagonalmatrix \xdmat [2] [] {#1} {0={#2}}
+$ \xdmat{1,2,3,4}$ \quad $\xdmat[v]{1,2,3,4}$ \quad $\xdmat[v,empty=0]{1,2,3,4} $ \quad 
+$ \xdmat{1, \commamatrix{2&3\\4&5}} $ \quad
+$ \xdmat{1, \mqty{2&3\\4&5}} $ \quad
+
+\newdiagonalmatrix \xxdmat [3] [] {#1, diag={true, 0={#2}, #3} } {}
+\newdiagonalmatrix \xadmat [2] [] {#1} {auto-update,'0={#2}}
+$ \xxdmat{1,2,3,4}{'0={a,b,c,d}} $ \quad 
+$ \xxdmat[b]{1,2,5}{'-1={3,4}} $ \quad
+$ \xadmat{a,b,c,d} $
+\end{example}
+
+\cs{newgeneralmatrix}、\cs{NewGeneralMatrix} 的例子
+见\autoref{eg:newgeneralmatrix} 和\autoref{eg:NewGeneralMatrix}。
+
+\end{document}
