@@ -230,6 +230,10 @@
   {
     \cs_set_eq:NN \physicx_bf: \symbf
   }
+\cs_new:Npn \physicx_left: { \mathopen{}\mathclose\bgroup\left }
+\cs_new:Npn \physicx_right: { \aftergroup\egroup\right }
+\cs_new:Npn \physicx_left:N { \mathopen{}\mathclose\bgroup }
+\cs_new:Npn \physicx_right:N { \egroup }
 \keys_define:nn { physicx }
   {
     compat .bool_set:N = \g__physicx_compat_bool ,
@@ -340,7 +344,7 @@
         \cs_set_protected:Npn #1
           {
             \peek_charcode_ignore_spaces:NTF \let
-              { #2 } { #2 [ \left ] \right }
+              { #2 } { #2 [ \physicx_left: ] \physicx_right: }
           }
         \DeclareDocumentCommand #2 { O{##2} m s #3 }
           {
@@ -430,15 +434,15 @@
       {
         \bool_case_true:nF
           {
-            { \bool_if_p:n {##2} } { #4 \bigl  #5 #3 \bigr  #6 #7 }
-            { \bool_if_p:n {##3} } { #4 \Bigl  #5 #3 \Bigr  #6 #7 }
-            { \bool_if_p:n {##4} } { #4 \biggl #5 #3 \biggr #6 #7 }
-            { \bool_if_p:n {##5} } { #4 \Biggl #5 #3 \Biggr #6 #7 }
+            { \bool_if_p:n {##2} } { #4 \physicx_left:N \bigl  #5 #3 \physicx_right:N \bigr  #6 #7 }
+            { \bool_if_p:n {##3} } { #4 \physicx_left:N \Bigl  #5 #3 \physicx_right:N \Bigr  #6 #7 }
+            { \bool_if_p:n {##4} } { #4 \physicx_left:N \biggl #5 #3 \physicx_right:N \biggr #6 #7 }
+            { \bool_if_p:n {##5} } { #4 \physicx_left:N \Biggl #5 #3 \physicx_right:N \Biggr #6 #7 }
           }
           {
             \IfBooleanTF {##1}
               { #4       #5 #3        #6 #7 }
-              { #4 \!\left #5 #3 \right #6 #7 }
+              { #4 \physicx_left: #5 #3 \physicx_right: #6 #7 }
           }
       }
   }
