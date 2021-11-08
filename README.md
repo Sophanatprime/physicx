@@ -11,6 +11,7 @@ Copyright and license
 ----
 Copyright (C) 2021--2021
 Wenjian Chern (Longaster) and any individual authors listed elsewhere in this file.
+
 --------------------------------------------------------------------------
 
 This work may be distributed and/or modified under the
@@ -26,4 +27,5 @@ LaTeX version 2005/12/01 or later.
 This work has the LPPL maintenance status `maintained`.
 
 The Current Maintainers of this work is Wenjian Chern (Longaster).
+
 --------------------------------------------------------------------------
