@@ -1,8 +1,6 @@
 Abstract
 ----
 
-An extension of `physics` package.
-
 Contributing
 ----
 [Issues](https://github.com/Sophanatprime/physicx/issues) and
@@ -11,6 +9,9 @@ are always welcome.
 
 Copyright and license
 ----
+Copyright (C) 2021--2021
+Wenjian Chern (Longaster) and any individual authors listed elsewhere in this file.
+--------------------------------------------------------------------------
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License, either
@@ -25,5 +26,4 @@ LaTeX version 2005/12/01 or later.
 This work has the LPPL maintenance status `maintained`.
 
 The Current Maintainers of this work is Wenjian Chern (Longaster).
-
 --------------------------------------------------------------------------
