@@ -205,11 +205,9 @@ $\diagonalmatrix[p,empty=\Box]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
 
 $\diagonalmatrix[p,empty=\Box,
   item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
-  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
 ]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
 $\diagonalmatrix[transpose,p,empty=\Box]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
 $\diagonalmatrix[transpose,p,empty=\Box,
-  item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
   item={{4}{4}=\blacksquare, {{2}{3}=\oplus}},
 ]{0={1,2,3,4}, 2={22,33}, '-2={-22,-33}}$,
 \end{example}
@@ -235,9 +233,9 @@ diagonalmatrix，即对角矩阵。
 
 \begin{function}{\diagonalmatrix}
     \begin{syntax}
-        \cs{diagonalmatrix} \oarg{matrix类键值选项} \marg{diag键选项}
-        \cs{diagonalmatrix} = \oarg{matrix类键值选项} \marg{diag键选项}
-        \cs{diagonalmatrix} + \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix}     \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix} =   \oarg{matrix类键值选项} \marg{diag键选项}
+        \cs{diagonalmatrix}   + \oarg{matrix类键值选项} \marg{diag键选项}
         \cs{diagonalmatrix} = + \oarg{matrix类键值选项} \marg{diag键选项}
     \end{syntax}
     \verb|=| 开启保存模式，即不输出计算的矩阵，而将其全局保存至 
