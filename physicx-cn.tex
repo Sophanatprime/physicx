@@ -101,7 +101,7 @@
 
 \author{雾月, Longaster\thanks{Email: longaster@163.com}}
 \title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
-\date{\today\quad v0.1}
+\date{\today\quad v0.1.2}
 
 \begin{document}
 
@@ -129,6 +129,8 @@
 宏包选项即可。
 
 宏包选项：\opt{compat} 将尽量兼容 \pkg{physics} 宏包。\opt{physics}：自动启用 \opt{compat} 选项并加载 \pkg{physics} 宏包。\opt{short}： 将重定义一些简写的命令。\opt{mathtools}：启用 \pkg{mathtools} 宏包定义的一些环境，如 \env{matrix*} 等。\opt{unimath}：加载 \pkg{unicode-math} 宏包并设置一些兼容操作。
+
+\opt{quantity} 控制是否重定义括号类命令。\opt{noqty} 相当于 \verb|quantity=false|。初始为重定义。
 
 \section{括号，quantity}
 

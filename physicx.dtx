@@ -44,7 +44,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %<package>\RequirePackage{expl3}[2021/08/27]
 %<package>\RequirePackage{xparse,l3keys2e}
 %<package>\RequirePackage{amsmath}
-%<package>\GetIdInfo$Id: physicx.dtx 0.1 2021/11/05 +0815 Longaster$
+%<package>\GetIdInfo$Id: physicx.dtx 0.1.2 2021/11/11 +0815 Longaster$
 %<package>  {physicx In LaTeX2e}
 %<package>\ProvidesExplPackage{physicx}
 %<package>  {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -106,6 +106,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 \bool_new:N \g__physicx_physics_bool
 \bool_new:N \g__physicx_compat_bool
 \bool_new:N \g__physicx_short_bool
+\bool_new:N \g__physicx_quantity_bool
 \prg_new_conditional:Npnn \physicx_compat: { T, F, TF }
   { 
     \bool_if:NTF \g__physicx_compat_bool 
@@ -323,6 +324,11 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     physics .code:n = \RequirePackage{physics} ,
     mathtools .code:n = \RequirePackage{mathtools} ,
     unimath .code:n = \RequirePackage{unicode-math} ,
+    quantity .bool_set:N = \g__physicx_quantity_bool ,
+    quantity .default:n = true ,
+    quantity .initial:n = true ,
+    noqty .meta:n = { quantity = false } ,
+    noquantity .meta:n = { quantity = false } ,
   }
 %
 \ProcessKeysPackageOptions { physicx }
@@ -479,6 +485,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 % \begin{macro}{\quantity,\evaluated,\matrixquantity,\smallmatrixquantity}
 % Redefine some macros in \pkg{physics} package.
 %    \begin{macrocode}
+\if_bool:N \g__physicx_quantity_bool
 \physicx_declare_legacy_quantity:nnNn
   \c_true_bool \c_true_bool \quantity
   {
@@ -531,6 +538,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     { !d<> } { {\left\langle} { \begin{smallmatrix} #8 \end{smallmatrix} } {\right\rangle} }
     { !d== } { {\left\Vert} { \begin{smallmatrix} #9 \end{smallmatrix} } {\right\Vert} }
   }
+\fi:
 %    \end{macrocode}
 % \end{macro}
 %
@@ -565,6 +573,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %   \commutator,\poissonbracket,\pb,\anticommutator,\acomm}
 % Redefine some macros in \pkg{physics} package.
 %    \begin{macrocode}
+\if_bool:N \g__physicx_quantity_bool
 \physicx_option_or:nnT { compat } { short }
   {
     \cs_set:Npn \qty { \quantity }
@@ -588,16 +597,12 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
       { m } {#6} { \c_physicx_Order_tl } ( ) { }
     \physicx_declare_legacy_paren:NnnnNNn \oorder 
       { m } {#6} { \c_physicx_order_tl } ( ) { }
-    \cs_set:Npn \Order { \order }
-    \cs_set:Npn \OOrder { \order }
   }
   {
     \physicx_declare_legacy_paren:NnnnNNn \Order
       { m } {#6} { \c_physicx_Order_tl } ( ) { }
     \physicx_declare_legacy_paren:NnnnNNn \order
       { m } {#6} { \c_physicx_order_tl } ( ) { }
-    \cs_set:Npn \oorder { \order }
-    \cs_set:Npn \OOrder { \Order }
   }
 \physicx_declare_legacy_paren:NnnnNNn \commutator
   { m m } { #6 , #7 } { } [ ] { }
@@ -611,6 +616,11 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     \cs_set:Npn \anticommutator { \poissonbracket }
     \cs_set:Npn \acomm { \poissonbracket } 
   }
+\fi:
+\physicx_declare_legacy_paren:NnnnNNn \OOrder 
+      { m } {#6} { \c_physicx_Order_tl } ( ) { }
+\physicx_declare_legacy_paren:NnnnNNn \oorder 
+      { m } {#6} { \c_physicx_oorder_tl } ( ) { }
 %    \end{macrocode}
 % \end{macro}
 %
