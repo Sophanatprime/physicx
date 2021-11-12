@@ -29,7 +29,7 @@
 \RequirePackage{expl3}[2021/08/27]
 \RequirePackage{xparse,l3keys2e}
 \RequirePackage{amsmath}
-\GetIdInfo$Id: physicx.dtx 0.1.2 2021/11/11 +0815 Longaster$
+\GetIdInfo$Id: physicx.dtx 0.2 2021/11/12 +0815 Longaster$
   {physicx In LaTeX2e}
 \ProvidesExplPackage{physicx}
   {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -43,7 +43,7 @@
 \bool_new:N \g__physicx_physics_bool
 \bool_new:N \g__physicx_compat_bool
 \bool_new:N \g__physicx_short_bool
-\bool_new:N \g__physicx_quantity_bool
+\bool_new:N \g__physicx_reqty_bool
 \prg_new_conditional:Npnn \physicx_compat: { T, F, TF }
   {
     \bool_if:NTF \g__physicx_compat_bool
@@ -194,7 +194,7 @@
         \exp_args:Nno \keys_if_exist:nnT {##1} { \l_keys_key_str }
           {
             \clist_map_break:n
-              { \keys_set:no {##1} { \l_keys_key_str = #2 } }
+              { \keys_set:no {##1} { \l_keys_key_str = {#2} } }
           }
       }
   }
@@ -208,7 +208,7 @@
             \clist_map_break:n
               {
                 \bool_set_true:N \l__physicx_tmpa_bool
-                \keys_set:no {##1} { \l_keys_key_str = #2 }
+                \keys_set:no {##1} { \l_keys_key_str = {#2} }
               }
           }
       }
@@ -217,6 +217,8 @@
   }
 \cs_generate_variant:Nn \physicx_search_also:nn { no , oo }
 \prg_generate_conditional_variant:Nnn \physicx_search_also:nn { no , oo } { T , F , TF }
+\cs_new_protected:Npn \physicx_new_type:nnn #1#2#3
+  { \keys_define:nn { physicx/#1 } { type / #2 .meta:n = {#3} } }
 \tl_const:Nn \c_physicx_order_tl { \mathcal{o} }
 \tl_const:Nn \c_physicx_Order_tl { \mathcal{O} }
 \cs_new:Npn \physicx_use_amssymb_type:
@@ -244,11 +246,10 @@
     physics .code:n = \RequirePackage{physics} ,
     mathtools .code:n = \RequirePackage{mathtools} ,
     unimath .code:n = \RequirePackage{unicode-math} ,
-    quantity .bool_set:N = \g__physicx_quantity_bool ,
-    quantity .default:n = true ,
-    quantity .initial:n = true ,
-    noqty .meta:n = { quantity = false } ,
-    noquantity .meta:n = { quantity = false } ,
+    reqty .bool_set:N = \g__physicx_reqty_bool ,
+    reqty .default:n = true ,
+    reqty .initial:n = true ,
+    noqty .meta:n = { reqty = false } ,
   }
 \ProcessKeysPackageOptions { physicx }
 \@ifpackageloaded{physics}
@@ -271,6 +272,168 @@
       { \keys_set:nn { physicx/#2 } }
       { \keys_set:nn { physicx } {#2} }
   }
+\keys_define:nn { physicx }
+  { quantity .code:n = \keys_set:nn { physicx/quantity } {#1} }
+\keys_define:nn { physicx/quantity }
+  {
+    pre   .tl_set:N = \l__physicx_quantity_pre_tl  ,
+    post  .tl_set:N = \l__physicx_quantity_post_tl ,
+    left  .tl_set:N = \l__physicx_quantity_left_tl ,
+    right .tl_set:N = \l__physicx_quantity_right_tl ,
+    left-size  .code:n = { \tl_set_eq:NN \l__physicx_quantity_left_size_tl  #1 } ,
+    right-size .code:n = { \tl_set_eq:NN \l__physicx_quantity_right_size_tl #1 } ,
+    size  .meta:n = { left-size = {#1} , right-size = {#1} } ,
+    noauto .meta:n =  { left-size = \c_empty_tl , right-size = \c_empty_tl } ,
+    noauto .value_required:n = false ,
+    args  .code:n =
+      \tl_set:Nn \l__physicx_quantity_args_tl { [#1] } ,
+    args* .tl_set:N = \l__physicx_quantity_args_tl ,
+    code  .tl_set:N = \l__physicx_quantity_code_tl ,
+    type .multichoice: ,
+
+    settype .code:n = \setquantitytype #1 ,
+
+    unknown .code:n =
+      \tl_set:Nx \l__physicx_tmpa_tl { \tl_head:N \l_keys_key_str }
+      \token_if_eq_charcode:NNTF \l__physicx_tmpa_tl \c_backslash_str
+        { \use:n } { \use_ii:nn }
+      {
+        \cs_if_exist:cTF { \tl_tail:N \l_keys_key_str }
+          {
+            \keys_set:nx { physicx/quantity }
+              { size = \exp_not:c { \tl_tail:N \l_keys_key_str } }
+            \use_none:n
+          }
+          { \use:n }
+      }
+      {
+        \physicx_search_also:nnF
+          {
+            physicx/quantity/type ,
+          }
+          {#1}
+          {
+            \msg_error:nnxx { physicx } { unknown-key }
+              \l_keys_path_str { physicx/quantity }
+          }
+      } ,
+  }
+\NewDocumentCommand \setquantitytype { >{ \TrimSpaces } m }
+  { \physicx_new_type:nnn { quantity } {#1} }
+\setquantitytype { b } { left={[} , right={]} , }
+\setquantitytype { B } { left={\{} , right={\}} , }
+\setquantitytype { p } { left={(} , right={)} , }
+\setquantitytype { v } { left=\vert , right=\vert , }
+\setquantitytype { V } { left=\Vert , right=\Vert , }
+\setquantitytype { a } { left=\langle , right=\rangle , }
+\setquantitytype { m } { left=\begin{matrix} , right=\end{matrix} , noauto }
+\setquantitytype { bm } { left=\begin{bmatrix} , right=\end{bmatrix} , noauto }
+\setquantitytype { Bm } { left=\begin{Bmatrix} , right=\end{Bmatrix} , noauto }
+\setquantitytype { pm } { left=\begin{pmatrix} , right=\end{pmatrix} , noauto }
+\setquantitytype { vm } { left=\begin{vmatrix} , right=\end{vmatrix} , noauto }
+\setquantitytype { Vm } { left=\begin{Vmatrix} , right=\end{Vmatrix} , noauto }
+\setquantitytype { sm } { left=\begin{smallmatrix} , right=\end{smallmatrix} , noauto }
+\physicx_mathtools:T
+  {
+    \setquantitytype { m* } { left=\begin{matrix*} , right=\end{matrix*} , noauto }
+    \setquantitytype { bm* } { left=\begin{bmatrix*} , right=\end{bmatrix*} , noauto }
+    \setquantitytype { Bm* } { left=\begin{Bmatrix*} , right=\end{Bmatrix*} , noauto }
+    \setquantitytype { pm* } { left=\begin{pmatrix*} , right=\end{pmatrix*} , noauto }
+    \setquantitytype { vm* } { left=\begin{vmatrix*} , right=\end{vmatrix*} , noauto }
+    \setquantitytype { Vm* } { left=\begin{Vmatrix*} , right=\end{Vmatrix*} , noauto }
+    \setquantitytype { sm* } { left=\begin{smallmatrix*} , right=\end{smallmatrix*} , noauto }
+    \setquantitytype { sbm } { left=\begin{bsmallmatrix} , right=\end{bsmallmatrix} , noauto }
+    \setquantitytype { sBm } { left=\begin{Bsmallmatrix} , right=\end{Bsmallmatrix} , noauto }
+    \setquantitytype { spm } { left=\begin{psmallmatrix} , right=\end{psmallmatrix} , noauto }
+    \setquantitytype { svm } { left=\begin{vsmallmatrix} , right=\end{vsmallmatrix} , noauto }
+    \setquantitytype { sVm } { left=\begin{Vsmallmatrix} , right=\end{Vsmallmatrix} , noauto }
+    \setquantitytype { sbm* } { left=\begin{bsmallmatrix*} , right=\end{bsmallmatrix*} , noauto }
+    \setquantitytype { sBm* } { left=\begin{Bsmallmatrix*} , right=\end{Bsmallmatrix*} , noauto }
+    \setquantitytype { spm* } { left=\begin{psmallmatrix*} , right=\end{psmallmatrix*} , noauto }
+    \setquantitytype { svm* } { left=\begin{vsmallmatrix*} , right=\end{vsmallmatrix*} , noauto }
+    \setquantitytype { sVm* } { left=\begin{Vsmallmatrix*} , right=\end{Vsmallmatrix*} , noauto }
+  }
+\keys_set:nn { physicx/quantity }
+  {
+    left-size = \left ,
+    right-size = \right ,
+    type = p ,
+  }
+\cs_new:Npn \physicx_xquantity:nn #1#2
+  {
+    \group_begin:
+    \keys_set:nn { physicx/quantity } {#1}
+    \tl_if_empty:nF {#2} { \tl_set:Nn \l__physicx_quantity_code_tl {#2} }
+    \__physicx_xquantity_aux:oooo
+      { \l__physicx_quantity_left_tl }
+      { \l__physicx_quantity_args_tl }
+      { \l__physicx_quantity_code_tl }
+      { \l__physicx_quantity_right_tl }
+    \group_end:
+  }
+\cs_new:Npn \__physicx_xquantity_aux:nnnn #1#2#3#4
+  {
+    \l__physicx_quantity_pre_tl
+    \bool_lazy_or:nnTF
+      { \tl_if_empty_p:N \l__physicx_quantity_left_size_tl }
+      { \tl_if_empty_p:N \l__physicx_quantity_right_size_tl }
+      { #1 #2 #3 #4 }
+      {
+        \bool_lazy_or:nnTF
+          { \token_if_eq_meaning_p:NN \l__physicx_quantity_left_size_tl \left }
+          { \token_if_eq_meaning_p:NN \l__physicx_quantity_right_size_tl \right }
+          { \physicx_left: #1 #2 #3 \physicx_right: #4 }
+          {
+            \physicx_left:N \l__physicx_quantity_left_size_tl #1 #2
+            #3
+            \physicx_right:N \l__physicx_quantity_right_size_tl #4
+          }
+      }
+    \l__physicx_quantity_post_tl
+  }
+\NewDocumentCommand \xquantity { } { \physicx_xquantity:nn }
+\cs_generate_variant:Nn \__physicx_xquantity_aux:nnnn { oooo }
+\NewDocumentCommand \newxquantity { m o o m m }
+  {
+    \IfNoValueTF {#2}
+      {
+        \cs_set:Npn \__physicx_new_xquantity_aux:w ##1
+          { \newcommand ##1 }
+      }
+      {
+        \IfNoValueTF {#3}
+          {
+            \cs_set:Npn \__physicx_new_xquantity_aux:w ##1
+              { \newcommand ##1 [#2] }
+          }
+          {
+            \cs_set:Npn \__physicx_new_xquantity_aux:w ##1
+              { \newcommand ##1 [#2] [#3] }
+          }
+      }
+    \exp_args:Nc \__physicx_new_xquantity_aux:w
+      { \cs_to_str:N #1~star }
+      { \physicx_xquantity:nn { #4 , noauto } {#5} }
+    \exp_args:Nc \__physicx_new_xquantity_aux:w
+      { \cs_to_str:N #1~unstar }
+      { \physicx_xquantity:nn { #4 } {#5} }
+    \exp_args:NNx \newcommand #1
+      {
+        \exp_not:N \@ifstar
+        \exp_not:c { \cs_to_str:N #1~star }
+        \exp_not:c { \cs_to_str:N #1~unstar }
+      }
+  }
+\NewDocumentCommand \NewXQuantity { m m m m }
+  {
+    \NewDocumentCommand #1 { s #2 }
+      {
+        \IfBooleanTF {##1}
+          { \physicx_xquantity:nn { #3 , noauto } {#4} }
+          { \physicx_xquantity:nn { #3 } {#4} }
+      }
+  }
+\NewXQuantity \qxqty { O{} m } { #2 } {#3}
 \tl_new:N \physicxtmp
 \tl_new:N \l__physicx_cmd_noauto_body_tl
 \bool_new:N \l__physicx_cmd_noauto_body_bool
@@ -381,7 +544,7 @@
   }
 \cs_set_protected:Npn \@declarequantitycmd
   { \physicx_declare_legacy_quantity:nnNn }
-\if_bool:N \g__physicx_quantity_bool
+\if_bool:N \g__physicx_reqty_bool
 \physicx_declare_legacy_quantity:nnNn
   \c_true_bool \c_true_bool \quantity
   {
@@ -456,7 +619,7 @@
   }
 \cs_set_protected:Npn \@declareparencmd
   { \physicx_declare_legacy_paren:NnnnNNn }
-\if_bool:N \g__physicx_quantity_bool
+\if_bool:N \g__physicx_reqty_bool
 \physicx_option_or:nnT { compat } { short }
   {
     \cs_set:Npn \qty { \quantity }
@@ -478,12 +641,8 @@
   {
     \physicx_declare_legacy_paren:NnnnNNn \order
       { m } {#6} { \c_physicx_Order_tl } ( ) { }
-    \physicx_declare_legacy_paren:NnnnNNn \oorder
-      { m } {#6} { \c_physicx_order_tl } ( ) { }
   }
   {
-    \physicx_declare_legacy_paren:NnnnNNn \Order
-      { m } {#6} { \c_physicx_Order_tl } ( ) { }
     \physicx_declare_legacy_paren:NnnnNNn \order
       { m } {#6} { \c_physicx_order_tl } ( ) { }
   }
@@ -501,9 +660,9 @@
   }
 \fi:
 \physicx_declare_legacy_paren:NnnnNNn \OOrder
-      { m } {#6} { \c_physicx_Order_tl } ( ) { }
+  { m } {#6} { \c_physicx_Order_tl } ( ) { }
 \physicx_declare_legacy_paren:NnnnNNn \oorder
-      { m } {#6} { \c_physicx_oorder_tl } ( ) { }
+  { m } {#6} { \c_physicx_order_tl } ( ) { }
 \cs_new_nopar:Npn \__physicx_matrix_calc:nn #1#2
   {
     \int_set:Nn \l__physicx_matrix_rows_int
@@ -750,6 +909,8 @@
     ending+ .code:n =
       \tl_put_right:Nn \l__physicx_matrix_ending_tl {#1} ,
 
+    settype .code:n = \setmatrixtype #1 ,
+
     unknown .code:n =
       \physicx_search_also:nnF
         {
@@ -766,20 +927,14 @@
             }
             {
               \msg_error:nnxx { physicx } { unknown-key }
-                \l_keys_path_str { physicx }
+                \l_keys_path_str { physicx/matrix }
             }
         } ,
   }
 \cs_new:Npn \physicx_matrix_new_type:nnn #1#2#3
-  {
-    \keys_define:nn { physicx/matrix }
-      { type / #1 .meta:n = { begin={#2} , end={#3} } }
-  }
-\cs_new:Npn \physicx_matrix_new_type:nn #1#2
-  {
-    \keys_define:nn { physicx/matrix }
-      { type / #1 .meta:n = {#2} }
-  }
+  { \physicx_new_type:nnn { matrix } {#1} { begin={#2} , end={#3} } }
+\cs_new:Npn \physicx_matrix_new_type:nn
+  { \physicx_new_type:nnn { matrix } }
 \NewDocumentCommand \setmatrixtype { s >{ \TrimSpaces } m }
   {
     \IfBooleanTF {#1}

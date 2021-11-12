@@ -10,6 +10,7 @@
 \usepackage{tabularx}
 \usepackage{ifthen}
 
+\def\emph#1{\textcolor{red!80!black}{#1}}
 \def\paremph#1{\par\bigskip\noindent{\bfseries\large #1}\endgraf\medskip}
 \def\tableautorefname{表}
 \def\exampleautorefname{例}
@@ -116,7 +117,8 @@
 
 要求：\pkg{expl3} 宏包版本至少 Released 2021-08-27，\emph{不准备兼容低版本}，尽管并不依赖某些新特性。如果使用 TeXLive，可以使用自带的控制台进行更新。如果你想兼容低版本，可以在 \href{http://www.latex-project.org/lppl.txt}{LPPL 1.3c} 协议下自行修改。
 
-
+\changes{v0.1.2}{2021/11/11}{新增 \opt{quantity} 选项。}
+\changes{v0.1.3}{2021/11/12}{将 \opt{quantity} 重命名为 \opt{reqty}。}
 \section{基本用法与宏包选项}
 
 \emph{太长不看版}：若仍要使用 \pkg{physics} 宏包，则使用 \opt{physics} 宏包选项，\emph{不可}再加载 \pkg{physics} 宏包，否者使用 \opt{short} 宏包选项。
@@ -130,18 +132,134 @@
 
 宏包选项：\opt{compat} 将尽量兼容 \pkg{physics} 宏包。\opt{physics}：自动启用 \opt{compat} 选项并加载 \pkg{physics} 宏包。\opt{short}： 将重定义一些简写的命令。\opt{mathtools}：启用 \pkg{mathtools} 宏包定义的一些环境，如 \env{matrix*} 等。\opt{unimath}：加载 \pkg{unicode-math} 宏包并设置一些兼容操作。
 
-\opt{quantity} 控制是否重定义括号类命令。\opt{noqty} 相当于 \verb|quantity=false|。初始为重定义。
+\opt{reqty} 控制是否重定义 \pkg{physics} 宏包的括号类命令。\opt{noqty} 相当于 \verb|reqty=false|。初始为重定义。
 
-\section{括号，quantity}
+\section{括号，quantity}\label{sec:quantity}
 
-对括号类命令的修改并不多，主要增加了 \cs{oorder}、\cs{OOrder} 命令，以输出
+\changes{v0.2}{2021/11/12}{新增 \cs{xquantity}、\cs{qxqty} 命令。}
+\subsection{新的括号命令}\label{sec:new-qty-cmd}
+
+“新的括号命令”指 \pkg{physicx} 宏包定义的括号命令。
+
+\begin{function}{\xquantity}
+    \begin{syntax}
+        \cs{xquantity} \marg{quantity类键值选项} \marg{code}
+        \cs{qxqty}   \oarg{quantity类键值选项} \marg{code}
+        \cs{qxqty} * \oarg{quantity类键值选项} \marg{code}
+    \end{syntax}
+    这些命令用于替代 \pkg{physics} 宏包的括号类命令。
+
+    带 \verb|*| 的 \cs{qxqty} 命令禁止自动调整括号大小。
+
+    \cs{xquantity} 的速度更快些。
+\end{function}
+
+\begin{example}[]
+$ \xquantity{}{x^2} \quad \xquantity{type=v}{\int} \quad \displaystyle 
+  \xquantity{type=v}{\int_a^b} $ \qquad
+$ \xquantity{size=\bigg}{x^2} \quad \displaystyle 
+  \xquantity{size=\bigg}{\int_a^b} $
+\[ 
+  \xquantity{}{x^2} \quad \xquantity{type=v}{\int} \quad 
+  \xquantity{type=v}{\int_a^b} \quad \xquantity{size=\bigg}{x^2} 
+  \xquantity{size=\bigg}{\int_a^b} 
+\]
+
+$ \qxqty{x^2} \quad \qxqty[type=v]{\int} \quad \displaystyle 
+  \qxqty[v]{\int_a^b} $ \qquad
+$ \qxqty[size=\bigg]{x^2} \quad \displaystyle 
+  \qxqty[size=\bigg]{\int_a^b}$
+\[ 
+  \qxqty{x^2} \quad \qxqty[type=v]{\int} \quad \displaystyle 
+  \qxqty[v]{\int_a^b} \quad \qxqty[size=\bigg]{x^2} \quad 
+  \qxqty[size=\bigg]{\int_a^b} 
+\]
+\end{example}
+
+\pkg{physicx} 宏包的一个标准的括号命令由如下8个部分构成：\\[2pt]
+\framebox[\textwidth]{%
+  \meta{pre} %
+  \meta{left-size} %
+  \meta{left} %
+  \meta{arg} %
+  \meta{code} %
+  \meta{right-size} %
+  \meta{right} %
+  \meta{post}
+}\\[4pt]
+每一部分都有一个对应的键，可以在 \meta{quantity类键值选项} 中设置。
+
+\begin{function}{
+    pre,post,left,right,left-size,right-size,code,
+}
+    它们代表了标准括号命令的对应部分。当 \opt{left-size}、\opt{right-size} 
+    有一个为空时，则会移除 \opt{left-size}、\opt{right-size} 这两个部分。
+
+    \opt{left-size} 初始为 \tn{left}，\opt{right-size} 初始为 \tn{right}。
+\end{function}
+
+\begin{function}{
+    size,noauto,args,args*,
+}
+    \opt{size} 同时设置 \opt{left-size} 和 \opt{right-size}。\opt{noauto}
+    将 \opt{size} 设置为空。一般情况下，可以不写 \verb|size=|，而只写它的值。
+    如 \verb|\qxqty[size=\Big]{x}| 与 \verb|\qxqty[\Big]{x}| 效果相同。
+
+    \opt{args} 键将 \meta{arg} 部分设置为 \oarg{args}，而 \opt{args*} 键将
+    \meta{arg} 部分设置为其值。
+\end{function}
+
+\begin{function}{type}
+    \begin{syntax}
+        type = <p|b|B|v|V|a|m|pm|bm|Bm|vm|Vm|sm|...> \init{p}
+    \end{syntax}
+    \opt{type} 键使用预定义的括号类型。
+
+    它们的值正如 \pkg{amsmath} 的矩阵环境的 \verb|matrix| 前的部分。
+    \verb|p| 代表 \verb|( )|，\verb|b| 代表 \verb|[ ]|，\verb|B| 代表 
+    \verb|{ }|，\verb|v| 代表 “$\vert\ \vert$”，\verb|V| 
+    代表 “$\Vert\ \Vert$”，\verb|a| 代表 “$\langle\ \rangle$”。
+
+    带有 \verb|m| 的则为矩阵类的括号。
+
+    如果使用了 \pkg{mathtools} 宏包或使用了 \opt{mathtools} 宏包选项，则还定义了 \verb|p*|、\verb|sm*|、\verb|spm|、\verb|spm*| 等值，它们对应
+    \env{pmatrix*}、\env{smallmatrix*}、\env{psmallmatrix}、\env{psmallmatrix*} 等环境。可以使用 \opt{args} 键来设置它们的参数。\pkg{mathtools} 宏包必须手动加载。
+
+    它们是通过 \opt{left}、\opt{right}、\opt{size} 键来设置的。
+
+    \emph{注意：\opt{left}、\opt{right} 的设置必须合法，即若 \opt{size} 不为空，则 \opt{left}、\opt{right} 必须可以跟在 \tn{left}、\tn{right} 这两个调整大小的命令后面。} 不能如同：\\
+    \verb|left=\begin{matrix}, right=\end{matrix}, left-size=\left, right-size=\right|。
+
+    一般情况下，可以不写 \verb|type=| 而只写它的值。但是矩阵类的值则
+    不能这样做，原因目前未知。
+\end{function}
+
+\begin{example}[]
+\[ 
+  \xquantity{left=\begin{pmatrix}, right=\end{pmatrix}, noauto}
+    { ABC & dec \\ hij & HJK } \quad
+  \xquantity{left=\begin{smallmatrix}, right=\end{smallmatrix}, noauto}
+    { ABC & dec \\ hij & HJK } \quad
+  \xquantity {type=m*} { ABC & dec \\ hij & HJK } \quad
+  \xquantity {type=sm} { ABC & dec \\ hij & HJK }
+\]
+\end{example}
+
+\subsection{旧的括号命令}\label{sec:old-qty-cmd}
+
+\changes{v0.2}{2021/11/12}{移除 \cs{Order} 命令。}
+“旧的括号命令”是指 \pkg{physics} 宏包定义的命令。可以使用 \opt{reqty} 宏包选项设置是否使用新的机制重新定义它们。
+
+\emph{在仅使用 \pkg{physicx} 而不使用 \pkg{physics} 宏包时，本节命令不宜再使用，仅出于兼容性原因而保留。}
+
+增加了 \cs{oorder}、\cs{OOrder} 命令，以输出
 $\oorder{\typical}$，$\OOrder{\typical}$，它们的大小写总是固定的。
-而 \cs{order}、\cs{Order} 则会依据 \pkg{physics} 宏包是否加载、
+而 \cs{order} 则会依据 \pkg{physics} 宏包是否加载、
 \opt{compat} 选项是否给定来使用大小写，若
 给定，出于兼容性考虑，\cs{order} 输出大写的 $\order{\typical}$。
 
 {\catcode`|=12
-\begin{longtable}[l]{ l l p{6cm} }
+\begin{longtable}[l]{ l l p{5cm} }
 Full & Short & Description \\
 \verb|\quantity| & \verb*|\qty(\typical) | $\displaystyle\rightarrow \qty(\typical)$ & automatic $\qty(\;)$ braces \\
 & \verb*|\qty(\tall) | $\displaystyle\rightarrow \qty(\tall)$ & \\
@@ -151,11 +269,11 @@ Full & Short & Description \\
 & \verb*|\qty{\typical} | $\rightarrow \qty{\typical}$ & automatic $\qty{\;}$ braces \\
 & \verb*|\qty<\typical> | $\rightarrow \qty<\typical>$ & automatic $\qty<\;>$ braces \\
 & \verb*|\qty=\typical= | $\rightarrow \qty=\typical=$ & automatic $\qty=\;=$ braces \\
-& \verb*|\qty\big{} | $\rightarrow \qty\big{}$ & \multirow{2}{*}{\parbox{6cm}{manual sizing (works with any of the above bracket types)}} \\
+& \verb*|\qty\big{} | $\rightarrow \qty\big{}$ & \multirow{2}{*}{\parbox{5cm}{manual sizing (works with any of the above bracket types)}} \\
 & \verb*|\qty\Big{} | $\rightarrow \qty\Big{}$ & \\
 & \verb*|\qty\bigg{} | $\rightarrow \qty\bigg{}$ & \\
 & \verb*|\qty\Bigg{} | $\rightarrow \qty\Bigg{}$ & \\
-& \verb|\pqty{}| $\leftrightarrow$ \verb|\qty()| & \multirow{2}{*}{\parbox{6cm}{alternative syntax; robust and more \LaTeX-friendly}} \\
+& \verb|\pqty{}| $\leftrightarrow$ \verb|\qty()| & \multirow{2}{*}{\parbox{5cm}{alternative syntax; robust and more \LaTeX-friendly}} \\
 & \verb|\bqty{}| $\leftrightarrow$ \verb|\qty[]| & \\
 & \verb+\vqty{}+ $\leftrightarrow$ \verb+\qty||+ & \\
 & \verb|\Bqty{}| $\leftrightarrow$ \verb|\qty{}| & \\
@@ -173,7 +291,6 @@ Full & Short & Description \\
 & \verb+\eval*[\venti|_0^\infty+ $\displaystyle\rightarrow \eval*[\venti|_0^\infty$ & star for no resize \\
 \verb|\order| & \verb|\order{x^2}| $\rightarrow \order{x^2}$ & order symbol; automatic sizing and space handling \\
 & \verb|\order\Big{x^2}| $\rightarrow \order\Big{x^2}$ & manual sizing \\
-& \verb|\Order{x^2}| $\rightarrow \Order{x^2}$ & manual sizing \\
 & \verb|\oorder{x^2}| $\rightarrow \oorder{x^2}$ & lowercase o \\
 & \verb|\OOrder{x^2}| $\rightarrow \OOrder{x^2}$ & uppercase O \\
 & \verb|\order*{\grande}| $\displaystyle\rightarrow \order*{\grande}$ & star for no resize \\
@@ -570,6 +687,8 @@ generalmatrix，即通用矩阵命令。
     \end{syntax}
 
     不带 \opt{+} 的命令就是 \cs{qxmatrix} 命令，不过其第一个参数是必须用 \verb|{ }| 给定的。
+
+    这个矩阵命令自动更新 \opt{MaxMatrixCols} 计数器，即矩阵最大的列数。
 \end{function}
 
 
@@ -891,7 +1010,14 @@ $\fftest(aid)[type=v,
     \end{syntax}
     \pkg{physicx} 宏包的设置命令。
 
-    \meta{类型} 为 \opt{matrix} 等。
+    \meta{类型} 为 \opt{quantity}、\opt{matrix} 等。
+\end{function}
+
+\begin{function}{\setquantitytype,}
+    \begin{syntax}
+        \cs{setquantitytype} \marg{type name} \marg{quantity类键选项}
+    \end{syntax}
+    自定义 \verb|quantity| 类的type。
 \end{function}
 
 \begin{variable}{\physicxtmp,\physicxempty,\physicxexcept,\PHYSICXIGNORE}
@@ -913,18 +1039,43 @@ $\fftest(aid)[type=v,
 \end{function}
 
 
-\subsection{定义新的括号命令}
+\subsection{定义新的括号命令}\label{sec:define-new-qty}
+
+\begin{function}{\newxquantity,\NewXQuantity}
+    \begin{syntax}
+        \cs{newxquantity} \cs{\meta{cmd}} \oarg{arg nums} \oarg{default} \marg{quantity keys} \marg{code}
+        \cs{NewXQuantity} \cs{\meta{cmd}} \marg{arg spec} \marg{quantity keys} \marg{code}
+    \end{syntax}
+    定义新的矩阵命令。\cs{newxquantity} 与 \LaTeXe{} 的 \tn{newcommand} 形式相同。\cs{NewXQuantity} 与 \pkg{xparse} 的 \cs{NewDocumentCommand} 形式相同。
+
+    其中 \cs{NewXQuantity} 命令使用的宏变量从第\emph{2}开始，第1个保留作内部使用。
+
+    可以使用 \tn{newcommand} 或 \cs{NewDocumentCommand} 配合 \cs{xquantity} 命令来定义新的括号命令。
+\end{function}
+
+实际上，\cs{qxqty} 的定义就是
+\begin{example}[listing only]
+\NewXQuantity \qxqty { O{} m } {#2} {#3}
+\end{example}
+
+\begin{example}[]
+\newxquantity \xcommu [3] [] {#1, type=b} {#2,#3}
+$ \xcommu{A}{B} \quad \xcommu{\dfrac{A}{B}}{\dfrac{C}{D}} $ \quad
+$ \xcommu[\Big]{A}{B} \quad \xcommu[\big]{\dfrac{A}{B}}{\dfrac{C}{D}} $
+\end{example}
 
 \begin{function}{\@declarequantitycmd,\@declareparencmd}
     \begin{syntax}
         \cs{@declarequantitycmd} 0/1 0/1 \cs{\meta{cmd}} \marg{code}
         \cs{@declareparencmd} \cs{\meta{cmd}} \marg{arg spec} \marg{replace} \marg{pre code} \meta{left} \meta{right} \marg{post}
     \end{syntax}
+    \emph{这两个命令不宜再使用。}
 \end{function}
 
-由 \cs{@declarequantitycmd} 命令定义的quantity命令，其后除可使用 \tn{big}、\tn{Big} 等命令外，也支持任意命令。
+由 \cs{@declarequantitycmd} 命令定义的quantity命令，其后除可使用 \tn{big}、
+\tn{Big} 等命令外，也支持任意命令。宏变量从第\emph{4}个开始，前3个保留作内部使用。
 
-由 \cs{@declareparencmd} 命令定义的quantity命令，其后仅可使用 \tn{big}、\tn{Big}、\tn{bigg}、\tn{Bigg}这四个命令。
+由 \cs{@declareparencmd} 命令定义的quantity命令，其后仅可使用 \tn{big}、\tn{Big}、\tn{bigg}、\tn{Bigg}这四个命令。宏变量从第\emph{6}个开始，前5个保留作内部使用。
 
 几个个例子：
 
@@ -1012,5 +1163,10 @@ $ \xadmat{a,b,c,d} $
 
 \cs{newgeneralmatrix}、\cs{NewGeneralMatrix} 的例子
 见\autoref{eg:newgeneralmatrix} 和\autoref{eg:NewGeneralMatrix}。
+
+
+\IndexLayout
+\PrintChanges
+\PrintIndex
 
 \end{document}
