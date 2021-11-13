@@ -29,7 +29,7 @@
 \RequirePackage{expl3}[2021/08/27]
 \RequirePackage{xparse,l3keys2e}
 \RequirePackage{amsmath}
-\GetIdInfo$Id: physicx.dtx 0.2 2021/11/12 +0815 Longaster$
+\GetIdInfo$Id: physicx.dtx 0.2 2021/11/13 +0815 Longaster$
   {physicx In LaTeX2e}
 \ProvidesExplPackage{physicx}
   {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -434,6 +434,7 @@
       }
   }
 \NewXQuantity \qxqty { O{} m } { #2 } {#3}
+\NewXQuantity \txqty { O{p} O{} m } { type={#2}, #3 } {#4}
 \tl_new:N \physicxtmp
 \tl_new:N \l__physicx_cmd_noauto_body_tl
 \bool_new:N \l__physicx_cmd_noauto_body_bool

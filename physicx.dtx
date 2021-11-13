@@ -44,7 +44,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %<package>\RequirePackage{expl3}[2021/08/27]
 %<package>\RequirePackage{xparse,l3keys2e}
 %<package>\RequirePackage{amsmath}
-%<package>\GetIdInfo$Id: physicx.dtx 0.2 2021/11/12 +0815 Longaster$
+%<package>\GetIdInfo$Id: physicx.dtx 0.2 2021/11/13 +0815 Longaster$
 %<package>  {physicx In LaTeX2e}
 %<package>\ProvidesExplPackage{physicx}
 %<package>  {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -536,6 +536,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
       }
   }
 \NewXQuantity \qxqty { O{} m } { #2 } {#3}
+\NewXQuantity \txqty { O{p} O{} m } { type={#2}, #3 } {#4}
 %    \end{macrocode}
 %
 % \end{macro}
