@@ -272,6 +272,14 @@
       { \keys_set:nn { physicx/#2 } }
       { \keys_set:nn { physicx } {#2} }
   }
+\tl_new:N \l__physicx_quantity_args_tl
+\tl_new:N \l__physicx_quantity_code_tl
+\tl_new:N \l__physicx_quantity_left_size_tl
+\tl_new:N \l__physicx_quantity_left_tl
+\tl_new:N \l__physicx_quantity_post_tl
+\tl_new:N \l__physicx_quantity_pre_tl
+\tl_new:N \l__physicx_quantity_right_size_tl
+\tl_new:N \l__physicx_quantity_right_tl
 \keys_define:nn { physicx }
   { quantity .code:n = \keys_set:nn { physicx/quantity } {#1} }
 \keys_define:nn { physicx/quantity }
@@ -295,7 +303,7 @@
 
     unknown .code:n =
       \tl_set:Nx \l__physicx_tmpa_tl { \tl_head:N \l_keys_key_str }
-      \token_if_eq_charcode:NNTF \l__physicx_tmpa_tl \c_backslash_str
+      \token_if_eq_meaning:NNTF \l__physicx_tmpa_tl \c_backslash_str
         { \use:n } { \use_ii:nn }
       {
         \cs_if_exist:cTF { \tl_tail:N \l_keys_key_str }

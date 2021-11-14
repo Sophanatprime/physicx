@@ -137,17 +137,16 @@
 \section{括号，quantity}\label{sec:quantity}
 
 \changes{v0.2}{2021/11/13}{新增 \cs{xquantity}、\cs{qxqty}、\cs{txqty} 命令。}
+\changes{v0.2.1}{2021/11/14}{移除 \cs{txqty} 命令。}
 \subsection{新的括号命令}\label{sec:new-qty-cmd}
 
 “新的括号命令”指 \pkg{physicx} 宏包定义的括号命令。
 
-\begin{function}[added=2021-11-13]{\xquantity,\qxqty,\txqty}
+\begin{function}[added=2021-11-13]{\xquantity,\qxqty}
     \begin{syntax}
         \cs{xquantity} \marg{quantity类键值选项} \marg{code}
         \cs{qxqty}   \oarg{quantity类键值选项} \marg{code}
         \cs{qxqty} * \oarg{quantity类键值选项} \marg{code}
-        \cs{txqty}   \oarg{type} \oarg{quantity类键值选项} \marg{code}
-        \cs{txqty} * \oarg{type} \oarg{quantity类键值选项} \marg{code}
     \end{syntax}
     这些命令用于替代 \pkg{physics} 宏包的括号类命令。
 
@@ -172,14 +171,11 @@ $ \xquantity{size=\bigg}{x^2} \quad \displaystyle
 $ \qxqty{x^2} \quad \qxqty[type=v]{\int} \quad \displaystyle 
   \qxqty[v]{\int_a^b} $ \qquad
 $ \qxqty[size=\bigg]{x^2} \quad \displaystyle 
-  \qxqty[size=\bigg]{\int_a^b}$ \qquad
-$ \txqty[v]{x^2} \quad \txqty[v][\bigg]{x^2} \displaystyle \quad
-  \txqty[v]{\int_a^b} $
+  \qxqty[size=\bigg]{\int_a^b}$
 \[ 
   \qxqty{x^2} \quad \qxqty[type=v]{\int} \quad 
   \qxqty[v]{\int_a^b} \quad \qxqty[size=\bigg]{x^2} \quad 
-  \qxqty[size=\bigg]{\int_a^b} \quad
-  \txqty[v]{x^2} \quad \txqty[v][\bigg]{x^2} \quad \txqty[v]{\int_a^b}
+  \qxqty[size=\bigg]{\int_a^b}
 \]
 \end{example}
 
@@ -237,9 +233,9 @@ $ \txqty[v]{x^2} \quad \txqty[v][\bigg]{x^2} \displaystyle \quad
     \emph{注意：\opt{left}、\opt{right} 的设置必须合法，即若 \opt{size} 不为空，则 \opt{left}、\opt{right} 必须可以跟在 \tn{left}、\tn{right} 这两个调整大小的命令后面。} 不能如同：\\
     \verb|left=\begin{matrix}, right=\end{matrix}, left-size=\left, right-size=\right|。
 
-    一般情况下，可以不写 \verb|type=| 而只写它的值。但是矩阵类的值则
-    不能这样做，原因目前未知。
+    一般情况下，可以不写 \verb|type=| 而只写它的值。
 \end{function}
+\changes{v0.2.1}{2021/11/14}{修复矩阵类不能使用type简写的错误。}
 
 \begin{example}[]
 \[ 
@@ -1061,10 +1057,9 @@ $\fftest(aid)[type=v,
     可以使用 \tn{newcommand} 或 \cs{NewDocumentCommand} 配合 \cs{xquantity} 命令来定义新的括号命令。
 \end{function}
 
-实际上，\cs{qxqty}、\cs{txqty} 的定义就是
+实际上，\cs{qxqty} 的定义就是
 \begin{example}[listing only]
 \NewXQuantity \qxqty { O{} m } {#2} {#3}
-\NewXQuantity \txqty { O{p} O{} m } {type={#2}, #3} {#4}
 \end{example}
 
 \begin{example}[]
