@@ -43,7 +43,40 @@
         \l__this_tmp_tl
     \end{tabularx}
 }
+
+\cs_set_protected:Npn \setphysicxprimitive #1
+  {
+    \use:x 
+      {
+        \exp_not:n { \lstdefinelanguage[PhysicxLaTeX]{TeX}[LaTeX]{TeX} }
+          { morekeywords=[2]{#1} }
+      }
+  }
 \ExplSyntaxOff
+
+\setphysicxprimitive{
+  xquantity,
+  qxqty,
+  diagonalmatrix,
+  commamatrix,
+  qxmatrix,
+  generalmatrix,
+  physicxset,
+  setquantitytype,
+  setmatrixtype,
+  physicxtmp,
+  physicxexcept,
+  PHYSICXIGNORE,
+  setmatrixdata,
+  newxquantity,
+  NewXQuantity,
+  newdiagonalmatrix,
+  NewDiagonalMatrix,
+  newcommamatrix,
+  NewCommaMatrix,
+  newgeneralmatrix,
+  NewGeneralMatrix,
+}
 
 \newcounter{example}
 \tcbset{
@@ -59,7 +92,14 @@
         title={~},
     }
 }
-\newtcblisting[use counter=example]{example}[1][]{example style,#1}
+\newtcblisting[use counter=example]{example}[1][]{
+  listing options={
+    style=tcblatex,
+    language={[PhysicxLaTeX]TeX},
+    keywordstyle=\color{red!70!black}\bfseries,
+    keywordstyle={[2]\color{blue!70!black}\bfseries},
+  },
+  example style,#1}
 
 \setmathfont[math-style=TeX,bold-style=TeX]{Latin Modern Math}
 \setmathfont[range={
@@ -102,7 +142,7 @@
 
 \author{雾月, Longaster\thanks{Email: longaster@163.com}}
 \title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
-\date{\today\quad v0.2}
+\date{\today\quad v0.3}
 
 \begin{document}
 
@@ -119,6 +159,7 @@
 
 \changes{v0.1.2}{2021/11/11}{新增 \opt{quantity} 选项。}
 \changes{v0.1.3}{2021/11/12}{将 \opt{quantity} 重命名为 \opt{reqty}。}
+\changes{v0.3}{2021/11/27}{简单兼容 \pkg{unicode-math} 宏包}
 \section{基本用法与宏包选项}
 
 \emph{太长不看版}：若仍要使用 \pkg{physics} 宏包，则使用 \opt{physics} 宏包选项，\emph{不可}再加载 \pkg{physics} 宏包。
@@ -609,7 +650,7 @@ $\qxmatrix[
   ]{A}{m}[2]{n}[2]$ \ 
 \end{example}
 
-\begin{example}
+\begin{example}[]
 \newcommand{\twotwomat}[2][]{\qxmatrix[type=#2,#1]{A}{n}[2]{n}[2]}
 \setmatrixtype*{jacobian}{
     element-code=\displaystyle\pdv{##1_{##2}}{x_{##3}},

@@ -29,7 +29,7 @@
 \RequirePackage{expl3}[2021/08/27]
 \RequirePackage{xparse,l3keys2e}
 \RequirePackage{amsmath}
-\GetIdInfo$Id: physicx.dtx 0.2 2021/11/13 +0815 Longaster$
+\GetIdInfo$Id: physicx.dtx 0.3 2021/11/27 +0815 Longaster$
   {physicx In LaTeX2e}
 \ProvidesExplPackage{physicx}
   {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -67,7 +67,20 @@
       { \prg_return_true: }
       { \prg_return_false: }
   }
+\cs_if_exist_use:NF \hook_gput_code:nnn { \use_none:nnn }
+  { package/unicode-math/after } { ./package }
+  {
+    \cs_gset_eq:NN \physicx_unimath:TF \use_i:nn
+    \cs_gset_eq:NN \physicx_unimath:T  \use:n
+    \cs_gset_eq:NN \physicx_unimath:F  \use_none:n
+  }
+\prg_set_conditional:Npnn \physicx_unimath: { T, F, TF }
+  {
+    \tl_if_exist:cTF { ver @ unicode-math . \@pkgextension }
+      { \prg_return_true: } { \prg_return_false: }
+  }
 
+\clist_new:N \l__physicx_tmpa_clist
 \bool_new:N \l__physicx_tmpa_bool
 \int_new:N \l__physicx_tmpa_int
 \int_new:N \l__physicx_tmpb_int
@@ -237,15 +250,23 @@
 \cs_new:Npn \physicx_right: { \aftergroup\egroup\right }
 \cs_new:Npn \physicx_left:N { \mathopen{}\mathclose\bgroup }
 \cs_new:Npn \physicx_right:N { \egroup }
+\cs_new:Npn \__physicx_loadpackage_options:nnn #1#2#3
+  {
+    \clist_if_empty:nF {#1} { \PassOptionsToPackage {#1} {#3} }
+    \RequirePackage {#3}
+  }
 \keys_define:nn { physicx }
   {
     compat .bool_set:N = \g__physicx_compat_bool ,
     compat .default:n = true ,
     short .bool_set:N = \g__physicx_short_bool ,
     short .default:n = true ,
-    physics .code:n = \RequirePackage{physics} ,
-    mathtools .code:n = \RequirePackage{mathtools} ,
-    unimath .code:n = \RequirePackage{unicode-math} ,
+    physics .code:n = \__physicx_loadpackage_options:nnn {#1} { } {physics} ,
+    physics .default:n = { } ,
+    mathtools .code:n = \__physicx_loadpackage_options:nnn {#1} { } {mathtools} ,
+    mathtools .default:n = { } ,
+    unimath .code:n = \__physicx_loadpackage_options:nnn {#1} { } { unicode-math } ,
+    unimath .default:n = { } ,
     reqty .bool_set:N = \g__physicx_reqty_bool ,
     reqty .default:n = true ,
     reqty .initial:n = true ,
@@ -266,6 +287,21 @@
 \@ifpackageloaded {unicode-math}
   { \physicx_use_uni_bfit_type: }
   { \physicx_use_amssymb_type: }
+\physicx_unimath:T { %% TODO:
+  \AtBeginDocument{
+    \DeclareDocumentCommand\vectorbold{ s m }
+      { \IfBooleanTF{#1} { \physicx_bf:{#2} } { \mathbf{#2} } }
+    \DeclareDocumentCommand\vectorarrow{ s m }
+      { \IfBooleanTF{#1} { \vec{\physicx_bf:{#2}} } { \vec{\mathbf{#2}} } }
+    \DeclareDocumentCommand\vectorunit{ s m }
+      {\IfBooleanTF{#1} { \physicx_bf:{\hat{#2}} } { \mathbf{\hat{#2}} } }
+    \setmathfont[range={"2219}]{STIX~Two~Math}
+    \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle }
+    \DeclareDocumentCommand \crossproduct { } { \vectimes }
+    \DeclareDocumentCommand \vnabla { } { \symbf \nabla }
+    \let\div\divergence
+  }
+}
 \NewDocumentCommand \physicxset { s m }
   {
     \IfBooleanTF {#1}
