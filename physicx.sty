@@ -294,7 +294,7 @@
     \DeclareDocumentCommand\vectorarrow{ s m }
       { \IfBooleanTF{#1} { \vec{\physicx_bf:{#2}} } { \vec{\mathbf{#2}} } }
     \DeclareDocumentCommand\vectorunit{ s m }
-      {\IfBooleanTF{#1} { \physicx_bf:{\hat{#2}} } { \mathbf{\hat{#2}} } }
+      {\IfBooleanTF{#1} { \physicx_bf:{\hat{#2}} } { \hat{\mathbf{#2}} } }
     \setmathfont[range={"2219}]{STIX~Two~Math}
     \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle }
     \DeclareDocumentCommand \crossproduct { } { \vectimes }
