@@ -141,7 +141,7 @@
 
 
 \author{雾月, Longaster\thanks{Email: longaster@163.com}}
-\title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
+\title{\pkg{physicx}，展开的 \pkg{physics} 宏包}
 \date{\today\quad v0.3}
 
 \begin{document}
@@ -153,7 +153,7 @@
 
 \section{简介}
 
-\pkg{physics} 宏包定义了一些简写的命令，但是已经9年未更新了，\pkg{physicx} 对其进行了一定的扩展，基本兼容 \pkg{physics} 原有的命令。
+\pkg{physics} 宏包定义了一些简写的命令，但是已经9年未更新了，\pkg{physicx} 对其进行了一定的展开，基本兼容 \pkg{physics} 原有的命令。
 
 要求：\pkg{expl3} 宏包版本至少 Released 2021-08-27，\emph{不准备兼容低版本}，尽管并不依赖某些新特性。如果使用 TeXLive，可以使用自带的控制台进行更新。如果你想兼容低版本，可以在 \href{http://www.latex-project.org/lppl.txt}{LPPL 1.3c} 协议下自行修改。
 
@@ -356,7 +356,7 @@ Full & Short & Description \\
 
 \section{矩阵，matrix}\label{sec:matrixes}
 
-\pkg{physicx} 宏包极大地扩展了 \pkg{physics} 原有的矩阵类命令。提供了丰富的
+\pkg{physicx} 宏包极大地展开了 \pkg{physics} 原有的矩阵类命令。提供了丰富的
 键值接口来设置矩阵。
 
 定义了三个基本命令：\cs{genegralmatrix}、\cs{commamatrix}、\cs{diagonalmatrix}，及 \cs{qxmatrix}。
@@ -403,7 +403,7 @@ diagonalmatrix，即对角矩阵。
         \cs{diagonalmatrix} = + \oarg{matrix类键值选项} \marg{diag键选项}
     \end{syntax}
     \verb|=| 开启保存模式，即不输出计算的矩阵，而将其全局保存至 
-    \cs{physicxtmp} 宏中，将其扩展一次即可得到矩阵的值（不包括外部的 
+    \cs{physicxtmp} 宏中，将其展开一次即可得到矩阵的值（不包括外部的 
     \verb|\begin{matrix}| 等）。
 
     \verb|=| 将覆盖 \opt{saveto} 和 \opt{saveto*} 键的设置，即总是将矩阵保存
@@ -619,7 +619,7 @@ $\commamatrix=[b, align=\T, cr=\N]{a \T b \T c \N d \T e \T f}$ \
 
 \subsection{qxmatrix}
 
-\cs{qxmatrix} 扩展的 \cs{xmatrix}。
+\cs{qxmatrix} 展开的 \cs{xmatrix}。
 
 \begin{function}{\qxmatrix}
     \begin{syntax}
@@ -746,7 +746,7 @@ generalmatrix，即通用矩阵命令。
     \begin{syntax}
         expand = <none|text-expand|f|romanual|x|edef> \init{none}
     \end{syntax}
-    对输入的元素进行扩展，即先对 \opt{array}、\opt{diag}、\opt{item} 扩展，再进行处理。
+    对输入的元素进行展开，即先对 \opt{array}、\opt{diag}、\opt{item} 展开，再进行处理。
 \end{function}
 
 \begin{function}{rows,cols}
@@ -774,22 +774,40 @@ generalmatrix，即通用矩阵命令。
     是否无穷维矩阵。
 \end{function}
 
-\begin{function}{element-code, element-code*}
+\begin{function}[updated=2022-04-27]{element-code, element-code*}
     \begin{syntax}
         element-code  = \marg{code}
-        element-code* = <except-empty|except-dots|except-tl|except-regex|only-regex|\meta{macro name}>
+        element-code* = <except-empty|except-blank|except-dots|except-tl|
+        ~~~~~~~~~~~~~~~~~except-regex|only-regex|\meta{macro name}>
     \end{syntax}
-    \opt{element-code} 使用三个参数，分别为 \verb|main|、\verb|行角标|、\verb|列角标|。
+    \opt{element-code} 使用三个参数，分别为 \verb|main|、\verb|行角标|、\verb|列角标|。此
+    选项设置每一个矩阵元素要显示的代码。\cs{physicx@matrixelement} 宏保存这 \meta{code}（带有三个参数）。
+
+    \opt{element-code*} 控制要排除的元素，这些元素不使用 \opt{element-code} 中的处理代码。
+    一般情况下，应该首先使用 \opt{element-code}，再使用 \opt{element-code*}，如果先使用 
+    \opt{element-code*}，再使用 \opt{element-code}，则 \opt{element-code*} 不会生效。
+  \begin{itemize}
+    \item \opt{except-empty} 将排除空元素（完全为空，不包含任何字符）；
+    \item \opt{except-blank} 排除空白元素（包括空格）；
+    \item \opt{element-dots} 排除 \tn{cdots}、\tn{vdots}、\tn{ldots}、\tn{ddots}；
+    \item \opt{except-tl} 排除 \cs{physicxexcept} 的中记号，如果字符是一个整体要被排除，应该使用花括号：\verb|\def\physicxexcept{{abc}{ABC}}|，将排除元素为 \verb|abc| 或 \verb|ABC| 的情况；
+    \item \opt{except-regex} 将排除那些匹配正则表达式的元素，这个正则表达式保存在 \cs{physicxexcept} 中；
+    \item \opt{only-regex} 将排除那些不匹配正则表达式的元素，这个正则表达式保存在 \cs{physicxexcept} 中；
+    \item 它的值也可以是一个宏的名称，它使用这个宏来处理。这个宏应有三个参数。
+  \end{itemize}
+
+  注意 \opt{element-code*} 会重定义 \cs{physicx@matrixelement}。
 \end{function}
 
 \begin{function}{element-except,element-except+}
+这个键设置（或附加）\cs{physicxexcept} 的值，这个宏的值用于 \opt{element-code*} 的相关设置中。
 \end{function}
 
 \begin{function}{expand-element}
     \begin{syntax}
         expand-element = \TTF \init{false}
     \end{syntax}
-    是否对生成的矩阵值进行扩展，一般情况是不需要的，当使用 \opt{saveto} 保存到宏中，则可能需要启用该选项。
+    是否对生成的矩阵值进行展开，一般情况是不需要的，当使用 \opt{saveto} 保存到宏中，则可能需要启用该选项。
 \end{function}
 
 \begin{function}{empty}

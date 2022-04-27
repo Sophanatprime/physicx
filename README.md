@@ -9,7 +9,7 @@ are always welcome.
 
 Copyright and license
 ----
-Copyright (C) 2021--2021
+Copyright (C) 2021--2022
 Wenjian Chern (Longaster) and any individual authors listed elsewhere in this file.
 
 --------------------------------------------------------------------------

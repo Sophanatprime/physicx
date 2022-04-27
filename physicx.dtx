@@ -14,7 +14,7 @@ are always welcome.
 
 Copyright and license
 ----
-Copyright (C) 2021--2021
+Copyright (C) 2021--2022
 Wenjian Chern (Longaster) and any individual authors listed elsewhere in this file.
 
 --------------------------------------------------------------------------
@@ -44,7 +44,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %<package>\RequirePackage{expl3}[2021/08/27]
 %<package>\RequirePackage{xparse,l3keys2e}
 %<package>\RequirePackage{amsmath}
-%<package>\GetIdInfo$Id: physicx.dtx 0.3 2021/11/27 +0815 Longaster$
+%<package>\GetIdInfo$Id: physicx.dtx 0.3 2022/04/27 +0815 Longaster$
 %<package>  {physicx In LaTeX2e}
 %<package>\ProvidesExplPackage{physicx}
 %<package>  {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -101,7 +101,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 \cs_generate_variant:Nn \seq_set_split:Nnn { Non, NVV, c, cnV, cVV }
 \cs_generate_variant:Nn \tl_replace_all:Nnn { Non, Nox }
 \cs_new:Npn \PHYSICXIGNORE 
-  { \exp_stop_f: \exp_not:N \PHYSICXIGNORE }
+  { \exp_end: \exp_not:N \PHYSICXIGNORE }
 \bool_new:N \g__physicx_mathtools_bool
 \bool_new:N \g__physicx_physics_bool
 \bool_new:N \g__physicx_compat_bool
@@ -383,6 +383,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle } 
     \DeclareDocumentCommand \crossproduct { } { \vectimes }
     \DeclareDocumentCommand \vnabla { } { \symbf \nabla }
+    \let\divisionsymbol\div 
     \let\div\divergence
   }
 }
@@ -978,6 +979,15 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
       \cs_set:Npn \physicx@matrixelement ##1##2##3
         { 
           \tl_if_empty:nTF {##1} 
+            {##1}
+            { \__physicx_matrix_element_aux:nnn {##1} {##2} {##3} }
+        } ,
+    element-code* / except-blank .code:n = 
+      \cs_set_eq:NN \__physicx_matrix_element_aux:nnn 
+        \physicx@matrixelement
+      \cs_set:Npn \physicx@matrixelement ##1##2##3
+        { 
+          \tl_if_blank:nTF {##1} 
             {##1}
             { \__physicx_matrix_element_aux:nnn {##1} {##2} {##3} }
         } ,
