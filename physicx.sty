@@ -29,7 +29,7 @@
 \RequirePackage{expl3}[2021/08/27]
 \RequirePackage{xparse,l3keys2e}
 \RequirePackage{amsmath}
-\GetIdInfo$Id: physicx.dtx 0.3 2022/04/27 +0815 Longaster$
+\GetIdInfo$Id: physicx.dtx 0.3.2 2022/05/08 +0815 Longaster$
   {physicx In LaTeX2e}
 \ProvidesExplPackage{physicx}
   {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -299,8 +299,14 @@
     \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle }
     \DeclareDocumentCommand \crossproduct { } { \vectimes }
     \DeclareDocumentCommand \vnabla { } { \symbf \nabla }
-    \let\divisionsymbol\div
-    \let\div\divergence
+    \cs_set_eq:NN \divisionsymbol \div
+    \cs_set_eq:NN \div \divergence
+  }
+  \physicx_compat:T {
+    \AtBeginDocument{
+      \let\real\Re \DeclareDocumentCommand\Re{g}{\IfNoValueTF{#1}{\operatorname{Re}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Re}}{#1}}}
+      \let\imaginary\Im \DeclareDocumentCommand\Im{g}{\IfNoValueTF{#1}{\operatorname{Im}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Im}}{#1}}}
+    }
   }
 }
 \NewDocumentCommand \physicxset { s m }
