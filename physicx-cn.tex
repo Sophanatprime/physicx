@@ -3,7 +3,7 @@
 \usepackage{amsmath,mathtools}
 \usepackage{xcolor}
 \ExplSyntaxOn \cs_undefine:c { ver@physics.sty } \ExplSyntaxOff
-\usepackage[physics]{physicx}
+\usepackage[physics,fixdif]{physicx}
 \usepackage{array,longtable,multirow}
 \usepackage{tabularray}
 \usepackage[listings,breakable]{tcolorbox}
@@ -144,6 +144,8 @@
 \title{\pkg{physicx}，展开的 \pkg{physics} 宏包}
 \date{\today\quad v0.3.2}
 
+\usepackage{fixdif}
+
 \begin{document}
 
 \maketitle
@@ -174,6 +176,9 @@
 宏包选项：\opt{compat} 将尽量兼容 \pkg{physics} 宏包。\opt{physics}：自动启用 \opt{compat} 选项并加载 \pkg{physics} 宏包。\opt{short}： 将重定义一些简写的命令。\opt{mathtools}：启用 \pkg{mathtools} 宏包定义的一些环境，如 \env{matrix*} 等。\opt{unimath}：加载 \pkg{unicode-math} 宏包并设置一些兼容操作。
 
 \opt{reqty} 控制是否重定义 \pkg{physics} 宏包的括号类命令。\opt{noqty} 相当于 \verb|reqty=false|。初始为重定义。
+
+\changes{v0.3.3}{2022/07/30}{对 \pkg{fixdif} 宏包提供支持。}
+\opt{fixdif} 用于控制是否接入 \pkg{fixdif} 宏包的功能，当这个选项设置为真时，用户必须自行加载 \pkg{fixdif} 宏包，若还启用了 \opt{physics} 选项，则将微分号和偏微分号替换为 \pkg{fixdif} 的实现。
 
 \section{括号，quantity}\label{sec:quantity}
 
@@ -887,6 +892,7 @@ generalmatrix，即通用矩阵命令。
 \begin{function}{after-begin,after-begin+,after-end,after-end+}
 \end{function}
 
+\changes{v0.3.3}{2022/07/30}{修改 \opt{sepdim} 的行为，在其为 0pt 时，不显示使用 \cmd{\\}\texttt{[0.0pt]}。}
 \begin{function}{sepdim}
     \begin{syntax}
         sepdim = \meta{dim} \init{0pt}
