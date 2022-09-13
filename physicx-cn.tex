@@ -80,17 +80,17 @@
 
 \newcounter{example}
 \tcbset{
-    example style/.style={
-        sharp corners,
-        colback=white,
-        boxrule=.4pt,
-        left=2mm,right=2mm,top=1mm,bottom=1mm,
-        before title=例 \thetcbcounter：,
-        fonttitle=\bfseries,
-        colbacktitle=white,
-        coltitle=black,
-        title={~},
-    }
+  example style/.style={
+    sharp corners,
+    colback=white,
+    boxrule=.4pt,
+    left=2mm,right=2mm,top=1mm,bottom=1mm,
+    before title=例 \thetcbcounter：,
+    fonttitle=\bfseries,
+    colbacktitle=white,
+    coltitle=black,
+    title={~},
+  }
 }
 \newtcblisting[use counter=example]{example}[1][]{
   listing options={
@@ -138,11 +138,13 @@
 \newcommand{\tall}{\cbox{\phantom{A^{\vphantom{x^x}}_x}}}
 \newcommand{\grande}{\cbox{\phantom{\frac{1}{xx}}}}
 \newcommand{\venti}{\cbox{\phantom{\sum_x^x}}}
-
+\newcommand{\issue}[1]{(\href{https://github.com/Sophanatprime/physicx/issues/#1}{\texttt{\##1}})}
 
 \author{雾月, Longaster\thanks{Email: longaster@163.com}}
 \title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
-\date{\today\quad v0.3.3}
+\date{\today\quad v0.3.4}
+
+\changes{v0.3.4}{2022/09/13}{修复文档错误。}
 
 \usepackage{fixdif}
 
@@ -155,7 +157,7 @@
 
 \section{简介}
 
-\pkg{physics} 宏包定义了一些简写的命令，但是已经9年未更新了，\pkg{physicx} 对其进行了一定的展开，基本兼容 \pkg{physics} 原有的命令。
+\pkg{physics} 宏包定义了一些简写的命令，但是已经9年未更新了，\pkg{physicx} 对其进行了一定的扩展，基本兼容 \pkg{physics} 原有的命令。
 
 要求：\pkg{expl3} 宏包版本至少 Released 2021-08-27，\emph{不准备兼容低版本}，尽管并不依赖某些新特性。如果使用 TeXLive，可以使用自带的控制台进行更新。如果你想兼容低版本，可以在 \href{http://www.latex-project.org/lppl.txt}{LPPL 1.3c} 协议下自行修改。
 
@@ -179,6 +181,10 @@
 
 \changes{v0.3.3}{2022/07/30}{对 \pkg{fixdif} 宏包提供支持。}
 \opt{fixdif} 用于控制是否接入 \pkg{fixdif} 宏包的功能，当这个选项设置为真时，用户必须自行加载 \pkg{fixdif} 宏包，若还启用了 \opt{physics} 选项，则将微分号和偏微分号替换为 \pkg{fixdif} 的实现。
+
+\changes{v0.3.4}{2022/09/13}{新增 \opt{original} 选项。\issue{8}}
+\opt{original} 用于恢复被 \pkg{physics} 宏包重定义的 \tn{div}、\tn{Re}、\tn{Im} 命令。仅当使用了 \opt{physics} 选项或加载了 \pkg{physics} 宏包时生效。
+
 
 \section{括号，quantity}\label{sec:quantity}
 
@@ -361,7 +367,7 @@ Full & Short & Description \\
 
 \section{矩阵，matrix}\label{sec:matrixes}
 
-\pkg{physicx} 宏包极大地展开了 \pkg{physics} 原有的矩阵类命令。提供了丰富的
+\pkg{physicx} 宏包极大地扩展了 \pkg{physics} 原有的矩阵类命令。提供了丰富的
 键值接口来设置矩阵。
 
 定义了三个基本命令：\cs{genegralmatrix}、\cs{commamatrix}、\cs{diagonalmatrix}，及 \cs{qxmatrix}。
@@ -624,7 +630,7 @@ $\commamatrix=[b, align=\T, cr=\N]{a \T b \T c \N d \T e \T f}$ \
 
 \subsection{qxmatrix}
 
-\cs{qxmatrix} 展开的 \cs{xmatrix}。
+\cs{qxmatrix} 扩展的 \cs{xmatrix}。
 
 \begin{function}{\qxmatrix}
     \begin{syntax}
