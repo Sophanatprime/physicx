@@ -44,7 +44,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %<package>\RequirePackage{expl3}[2021/08/27]
 %<package>\RequirePackage{xparse,l3keys2e}
 %<package>\RequirePackage{amsmath}
-%<package>\GetIdInfo$Id: physicx.dtx 0.3.2 2022/05/08 +0815 Longaster$
+%<package>\GetIdInfo$Id: physicx.dtx 0.3.4 2022/09/13 +0815 Longaster$
 %<package>  {physicx In LaTeX2e}
 %<package>\ProvidesExplPackage{physicx}
 %<package>  {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -367,13 +367,24 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     reqty .initial:n = true ,
     noqty .meta:n = { reqty = false } ,
     fixdif .bool_set:N = \g__physicx_fixdif_bool ,
+    original .bool_set:N = \g__physicx_original_bool ,
   }
 %
 \ProcessKeysPackageOptions { physicx }
 %
 \@ifpackageloaded{physics}
   { \bool_set_true:N \g__physicx_compat_bool }
-  { }
+  {
+    \bool_if:NT \g__physicx_compat_bool 
+      {
+        \AtBeginDocument 
+          { 
+            \cs_set_eq:NN \divisionsymbol \div 
+            \cs_set_eq:NN \real \Re 
+            \cs_set_eq:NN \imaginary \Im 
+          }
+      }
+  }
 \@ifpackageloaded{mathtools}
   { \bool_set_true:N \g__physicx_mathtools_bool }
   { \bool_set_false:N \g__physicx_mathtools_bool }
@@ -397,20 +408,32 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     \DeclareDocumentCommand\vectorunit{ s m }
       {\IfBooleanTF{#1} { \physicx_bf:{\hat{#2}} } { \hat{\mathbf{#2}} } }
     \setmathfont[range={"2219}]{STIX~Two~Math}
-    \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle } 
+    \DeclareDocumentCommand \dotproduct { } { \vysmblkcircle }
     \DeclareDocumentCommand \crossproduct { } { \vectimes }
     \DeclareDocumentCommand \vnabla { } { \__physicx_vnabla: }
-    \cs_set_eq:NN \divisionsymbol \div 
-    \cs_set_eq:NN \div \divergence
   }
-  \physicx_compat:T {
+  \@ifpackageloaded {physics} {
     \AtBeginDocument{
+      \cs_set_eq:NN \divisionsymbol \div
+      \cs_set_eq:NN \div \divergence
       \bool_if:NT \g__physicx_fixdif_bool { \cs_set_eq:NN \diffd \@dif }
       \let\real\Re \DeclareDocumentCommand\Re{g}{\IfNoValueTF{#1}{\operatorname{Re}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Re}}{#1}}}
       \let\imaginary\Im \DeclareDocumentCommand\Im{g}{\IfNoValueTF{#1}{\operatorname{Im}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Im}}{#1}}}
     }
-  }
+  } { }
 }
+\bool_if:NT \g__physicx_original_bool
+  {
+    \AtBeginDocument{
+      \@ifpackageloaded{physics}
+        { 
+          \cs_set_eq:NN \Re \real 
+          \cs_set_eq:NN \Im \imaginary 
+          \cs_set_eq:NN \div \divisionsymbol 
+        }
+        {}
+    }
+  }
 %
 \bool_if:NT \g__physicx_fixdif_bool
   {
