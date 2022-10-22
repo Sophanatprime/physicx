@@ -44,7 +44,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 %<package>\RequirePackage{expl3}[2021/08/27]
 %<package>\RequirePackage{xparse,l3keys2e}
 %<package>\RequirePackage{amsmath}
-%<package>\GetIdInfo$Id: physicx.dtx 0.3.4 2022/09/13 +0815 Longaster$
+%<package>\GetIdInfo$Id: physicx.dtx 0.3.5 2022/10/22 +0815 Longaster$
 %<package>  {physicx In LaTeX2e}
 %<package>\ProvidesExplPackage{physicx}
 %<package>  {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -282,12 +282,7 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
   { \tl_if_in:nnTF {#1} { = } }
 \prg_new_conditional:Npnn \physicx_if_num:n #1 { T, F, TF }
   {
-    \regex_match:nnTF { \A [[:digit:]]+ \Z } {#1}
-      { \prg_return_true: } { \prg_return_false: }
-  }
-\prg_new_conditional:Npnn \physicx_if_num_sign:n #1 { T, F, TF }
-  {
-    \regex_match:nnTF { \A [\+\-]* [[:digit:]]+ \Z } {#1}
+    \regex_match:nnTF { \A [\+\-\ ]*(\d+|\d*\.\d+) \Z } {#1}
       { \prg_return_true: } { \prg_return_false: }
   }
 \cs_new:Npn \physicx_search_also:nn #1#2
@@ -342,6 +337,16 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 \cs_new:Npn \physicx_right: { \aftergroup\egroup\right }
 \cs_new:Npn \physicx_left:N { \mathopen{}\mathclose\bgroup }
 \cs_new:Npn \physicx_right:N { \egroup }
+\cs_new_protected_nopar:Npn \physicx_left:nN 
+  { \__physicx_delsize:NNnn \physicx_left: \tex_mathopen:D }
+\cs_new_protected_nopar:Npn \physicx_right:nN 
+  { \__physicx_delsize:NNnn \physicx_right: \tex_mathclose:D }
+\cs_new_nopar:Npn \__physicx_delsize:NNnn #1#2#3#4
+  {
+    \fp_compare:nNnTF {#3} < { 0 }
+      { #1 #4 }
+      { #2 { \exp_args:Nf \bBigg@ { \fp_eval:n { (#3)/1.2 } } {#4} } }
+  }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -500,8 +505,8 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
     post  .tl_set:N = \l__physicx_quantity_post_tl ,
     left  .tl_set:N = \l__physicx_quantity_left_tl ,
     right .tl_set:N = \l__physicx_quantity_right_tl ,
-    left-size  .code:n = { \tl_set_eq:NN \l__physicx_quantity_left_size_tl  #1 } ,
-    right-size .code:n = { \tl_set_eq:NN \l__physicx_quantity_right_size_tl #1 } ,
+    left-size  .code:n = { \__physicx_quantity_size:nn { left } {#1} } ,
+    right-size .code:n = { \__physicx_quantity_size:nn { right } {#1} } ,
     size  .meta:n = { left-size = {#1} , right-size = {#1} } ,
     noauto .meta:n =  { left-size = \c_empty_tl , right-size = \c_empty_tl } ,
     noauto .value_required:n = false ,
@@ -513,10 +518,22 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
 
     settype .code:n = \setquantitytype #1 ,
 
-    unknown .code:n = 
-      \tl_set:Nx \l__physicx_tmpa_tl { \tl_head:N \l_keys_key_str }
-      \token_if_eq_meaning:NNTF \l__physicx_tmpa_tl \c_backslash_str
-        { \use:n } { \use_ii:nn }
+    unknown .code:n = \__physicx_quantity_unknown:n {#1} ,
+  }
+\cs_new:Npn \__physicx_quantity_size:nn #1#2
+  {
+    \physicx_if_num:nTF {#2}
+      { 
+        \tl_set:cx { l__physicx_quantity_ #1 _size_tl } 
+          { \use:c { physicx_ #1:nN } { \fp_eval:n {#2} } }
+      }
+      { \tl_set_eq:cN { l__physicx_quantity_ #1 _size_tl } #2 }
+  }
+\cs_new:Npn \__physicx_quantity_unknown:n #1
+  {
+    \tl_set:Nx \l__physicx_tmpa_tl { \tl_head:N \l_keys_key_str }
+    \token_if_eq_meaning:NNTF \l__physicx_tmpa_tl \c_backslash_str
+      { \use:n } { \use_ii:nn }
       {
         \cs_if_exist:cTF { \tl_tail:N \l_keys_key_str }
           {
@@ -527,24 +544,30 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
           { \use:n }
       }
       {
-        \physicx_search_also:nnF
+        \exp_args:No \physicx_if_num:nTF \l_keys_key_str
           {
-            physicx/quantity/type ,
+            \keys_set:nx { physicx/quantity } { size = \l_keys_key_str }
           }
-          {#1}
           {
-            \msg_error:nnxx { physicx } { unknown-key }
-              \l_keys_path_str { physicx/quantity }
+            \physicx_search_also:nnF
+              {
+                physicx/quantity/type ,
+              }
+              {#1}
+              {
+                \msg_error:nnxx { physicx } { unknown-key }
+                  \l_keys_path_str { physicx/quantity }
+              }
           }
-      } ,
+      }
   }
 \NewDocumentCommand \setquantitytype { >{ \TrimSpaces } m }
   { \physicx_new_type:nnn { quantity } {#1} }
 \setquantitytype { b } { left={[} , right={]} , }
 \setquantitytype { B } { left={\{} , right={\}} , }
 \setquantitytype { p } { left={(} , right={)} , }
-\setquantitytype { v } { left=\vert , right=\vert , }
-\setquantitytype { V } { left=\Vert , right=\Vert , }
+\setquantitytype { v } { left=\lvert , right=\rvert , }
+\setquantitytype { V } { left=\lVert , right=\rVert , }
 \setquantitytype { a } { left=\langle , right=\rangle , }
 \setquantitytype { m } { left=\begin{matrix} , right=\end{matrix} , noauto }
 \setquantitytype { bm } { left=\begin{bmatrix} , right=\end{bmatrix} , noauto }
@@ -597,20 +620,29 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
   }
 \cs_new:Npn \__physicx_xquantity_aux:nnnn #1#2#3#4
   {
-    \l__physicx_quantity_pre_tl 
+    \l__physicx_quantity_pre_tl
     \bool_lazy_or:nnTF
       { \tl_if_empty_p:N \l__physicx_quantity_left_size_tl }
       { \tl_if_empty_p:N \l__physicx_quantity_right_size_tl }
       { #1 #2 #3 #4 }
       {
-        \bool_lazy_or:nnTF 
+        \bool_lazy_or:nnTF
           { \token_if_eq_meaning_p:NN \l__physicx_quantity_left_size_tl \left }
           { \token_if_eq_meaning_p:NN \l__physicx_quantity_right_size_tl \right }
           { \physicx_left: #1 #2 #3 \physicx_right: #4 }
           {
-            \physicx_left:N \l__physicx_quantity_left_size_tl #1 #2
-            #3
-            \physicx_right:N \l__physicx_quantity_right_size_tl #4
+            \exp_args:No \tl_if_head_eq_meaning:nNTF 
+              \l__physicx_quantity_left_size_tl \physicx_left:nN 
+              {
+                \l__physicx_quantity_left_size_tl #1 #2
+                #3
+                \l__physicx_quantity_right_size_tl #4
+              }
+              {
+                \physicx_left:N \l__physicx_quantity_left_size_tl #1 #2
+                #3
+                \physicx_right:N \l__physicx_quantity_right_size_tl #4
+              }
           }
       }
     \l__physicx_quantity_post_tl
@@ -658,7 +690,6 @@ The Current Maintainers of this work is Wenjian Chern (Longaster).
       }
   }
 \NewXQuantity \qxqty { O{} m } { #2 } {#3}
-\NewXQuantity \txqty { O{p} O{} m } { type={#2}, #3 } {#4}
 %    \end{macrocode}
 %
 % \end{macro}
