@@ -95,6 +95,7 @@
 \newtcblisting[use counter=example]{example}[1][]{
   listing options={
     style=tcblatex,
+    commentstyle=\color{green!60!black},
     language={[PhysicxLaTeX]TeX},
     keywordstyle=\color{red!70!black}\bfseries,
     keywordstyle={[2]\color{blue!70!black}\bfseries},
@@ -142,7 +143,7 @@
 
 \author{雾月, Longaster\thanks{Email: longaster@163.com}}
 \title{\pkg{physicx}，扩展的 \pkg{physics} 宏包}
-\date{\today\quad v0.3.5}
+\date{\today\quad v0.3.6}
 
 \changes{v0.3.4}{2022/09/13}{修复文档错误。}
 
@@ -180,6 +181,7 @@
 \opt{reqty} 控制是否重定义 \pkg{physics} 宏包的括号类命令。\opt{noqty} 相当于 \verb|reqty=false|。初始为重定义。
 
 \changes{v0.3.3}{2022/07/30}{对 \pkg{fixdif} 宏包提供支持。}
+\changes{v0.3.6}{2023/02/02}{适配 \pkg{fixdif} Version 2.0a。}
 \opt{fixdif} 用于控制是否接入 \pkg{fixdif} 宏包的功能，当这个选项设置为真时，用户必须自行加载 \pkg{fixdif} 宏包，若还启用了 \opt{physics} 选项，则将微分号和偏微分号替换为 \pkg{fixdif} 的实现。
 
 \changes{v0.3.4}{2022/09/13}{新增 \opt{original} 选项。\issue{8}}
@@ -262,11 +264,15 @@ $ \qxqty[size=\bigg]{x^2} \quad \displaystyle
     \opt{left-size} 初始为 \tn{left}，\opt{right-size} 初始为 \tn{right}。
 \end{function}
 
+\changes{v0.3.6}{2022/11/16}{quantity新增auto键。}
 \begin{function}{
-    size,noauto,args,args*,
+    size,auto,noauto,args,args*,
 }
-    \opt{size} 同时设置 \opt{left-size} 和 \opt{right-size}。\opt{noauto}
-    将 \opt{size} 设置为空。一般情况下，可以不写 \verb|size=|，而只写它的值。
+    \opt{size} 同时设置 \opt{left-size} 和 \opt{right-size}。
+    
+    \opt{auto} 设置 \verb+left-size=\left, right-size=\right+。
+
+    \opt{noauto} 将 \opt{size} 设置为空。一般情况下，可以不写 \verb|size=|，而只写它的值。
     如 \verb|\qxqty[size=\Big]{x}| 与 \verb|\qxqty[\Big]{x}| 效果相同，如 \verb|\qxqty[size=2]{x}| 与 \verb|\qxqty[2]{x}| 效果相同。
 
     \opt{args} 键将 \meta{arg} 部分设置为 \oarg{args}，而 \opt{args*} 键将
@@ -306,12 +312,42 @@ $ \qxqty{x} \qxqty[size=\big]{x} \qxqty[\big]{x} \qxqty[size=1.2]{x} \qxqty[1.2]
 \[ 
   \xquantity{left=\begin{pmatrix}, right=\end{pmatrix}, noauto}
     { ABC & dec \\ hij & HJK } \quad
-  \qxqty[p,2]{ \xquantity { m } { ABC & dec \\ hij & HJK } }
+  \qxqty[p,2]{ \xquantity { m } { ABC & dec \\ hij & HJK } } \quad 
   \xquantity{left=\begin{smallmatrix}, right=\end{smallmatrix}, noauto}
     { ABC & dec \\ hij & HJK } \quad
   \xquantity {type=m*} { ABC & dec \\ hij & HJK } \quad
   \xquantity {type=sm} { ABC & dec \\ hij & HJK } \quad 
 \]
+\end{example}
+
+\begin{example}[]
+\makeatletter
+%% 定义了一个 \spxqty，它的第一个参数为可选的键值参数，
+%% 第二个用于控制字体大小，当不给出或者为0时，使用text字体，当为1时，使用script字体，
+%% 当为2时，使用scriptscript字体，否则为display字体
+%% 其后的值为内容，除了可以使用 {} 外，也支持 \bgroup \egroup。这在其它命令中是不支持的
+\newbox\spxqty@box \newcount\spxqty@int
+\newcommand{\spxqty}[1][]{%
+  \def\spxqty@opt{#1}%
+  \afterassignment\spxqty@auxi
+  \spxqty@int\numexpr 0}
+\newcommand{\spxqty@auxi}{%
+  \afterassignment\spxqty@auxii
+  \setbox\spxqty@box\hbox}
+\newcommand{\spxqty@auxii}{%
+  \color@begingroup $
+  \ifcase\spxqty@int \textstyle \or\scriptstyle \or\scriptscriptstyle \else\displaystyle \fi
+  \bgroup \aftergroup\spxqty@auxiii}
+\newcommand{\spxqty@auxiii}{%
+  $\color@endgroup \egroup 
+  \expandafter\xquantity\expandafter{\spxqty@opt}{\box\spxqty@box}}
+\makeatother
+
+$ \spxqty   {\prod_{i=0}^\infty \frac{1}{i^2}} $
+$ \spxqty -1{\prod_{i=0}^\infty \frac{1}{i^2}} $
+$ \displaystyle\left(\prod_{i=0}^\infty \frac{1}{i^2}\right) $
+$ \spxqty \bgroup \prod_{i=0}^\infty \frac{1}{i^2}\egroup $
+$ \spxqty [2] -1\bgroup \prod_{i=0}^\infty \frac{1}{i^2}\egroup $
 \end{example}
 
 \subsection{旧的括号命令}\label{sec:old-qty-cmd}
