@@ -6,7 +6,7 @@
 %%
 %% physicx.dtx  (with options: `package')
 %% 
-%%     Copyright (C) 2021--2021
+%%     Copyright (C) 2021--2023
 %%     Wenjian Chern (Longaster) and any individual authors listed elsewhere in this file.
 %%  --------------------------------------------------------------------------
 %% 
@@ -29,7 +29,7 @@
 \RequirePackage{expl3}[2021/08/27]
 \RequirePackage{xparse,l3keys2e}
 \RequirePackage{amsmath}
-\GetIdInfo$Id: physicx.dtx 0.3.5 2022/10/22 +0815 Longaster$
+\GetIdInfo$Id: physicx.dtx 0.3.6 2023/02/02 +0815 Longaster$
   {physicx In LaTeX2e}
 \ProvidesExplPackage{physicx}
   {\ExplFileDate}{\ExplFileVersion}{\ExplFileDescription}
@@ -337,7 +337,7 @@
     \AtBeginDocument{
       \cs_set_eq:NN \divisionsymbol \div
       \cs_set_eq:NN \div \divergence
-      \bool_if:NT \g__physicx_fixdif_bool { \cs_set_eq:NN \diffd \@dif }
+      \bool_if:NT \g__physicx_fixdif_bool { \cs_set_eq:NN \diffd \d }
       \let\real\Re \DeclareDocumentCommand\Re{g}{\IfNoValueTF{#1}{\operatorname{Re}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Re}}{#1}}}
       \let\imaginary\Im \DeclareDocumentCommand\Im{g}{\IfNoValueTF{#1}{\operatorname{Im}}{\fbraces{\lbrace}{\rbrace}{\operatorname{Im}}{#1}}}
     }
@@ -357,32 +357,19 @@
   }
 \bool_if:NT \g__physicx_fixdif_bool
   {
-    \hook_gput_code:nnn { package/fixdif/before } { physicx }
-      { \cs_set_eq:NN \__physicx_nabla: \nabla }
-    \hook_gput_code:nnn { package/fixdif/after } { physicx }
-      { \tl_map_function:nN { \letdif \newdif \renewdif } \__physicx_fixdif_list:N }
-    \AtBeginDocument { \renewdif \__physicx_vnabla: { \symbf \__physicx_nabla: } }
-  }
-\cs_new_protected:Npn \__physicx_fixdif_list:N #1
-  {
-    \cs_if_free:cT { \cs_to_str:N #1 list }
+    \AtBeginDocument
       {
-        \cs_new_protected:cpn { \cs_to_str:N #1 list }
+        \@ifpackageloaded { unicode-math }
+          { \exp_args:NNNx \renewdif * \__physicx_vnabla: { \exp_not:o \__physicx_vnabla: } }
           {
-            \keyval_parse:nnn { \__physicx_fixdif:Nn #1 } { \__physicx_fixdif:Nnn #1 }
+            \cs_if_exist:NT \vnabla
+              {
+                \cs_set_eq:NN \__physicx_vnabla: \vnabla
+                \renewdif * \vnabla { \__physicx_vnabla: }
+                \cs_set_protected:Npx \vnabla { \exp_not:o \vnabla }
+              }
           }
       }
-  }
-\cs_new_protected:Npn \__physicx_fixdif:Nnn #1#2#3
-  {
-    \tl_if_head_eq_meaning:nNTF {#2} *
-      { \exp_args:NNc #1 * { \tl_tail:n {#2} } {#3} }
-      { \exp_args:Nc  #1   {#2} {#3} }
-  }
-\cs_new_protected:Npn \__physicx_fixdif:Nn #1#2
-  {
-    \exp_args:NNnx \__physicx_fixdif:Nnn #1 {#2}
-      { \tl_if_head_eq_meaning:nNTF {#2} * { \tl_tail:n {#2} } {#2} }
   }
 \NewDocumentCommand \physicxset { s m }
   {
@@ -409,6 +396,7 @@
     left-size  .code:n = { \__physicx_quantity_size:nn { left } {#1} } ,
     right-size .code:n = { \__physicx_quantity_size:nn { right } {#1} } ,
     size  .meta:n = { left-size = {#1} , right-size = {#1} } ,
+    auto  .meta:n = { left-size = \left , right-size = \right } ,
     noauto .meta:n =  { left-size = \c_empty_tl , right-size = \c_empty_tl } ,
     noauto .value_required:n = false ,
     args  .code:n =
@@ -432,8 +420,8 @@
   }
 \cs_new:Npn \__physicx_quantity_unknown:n #1
   {
-    \tl_set:Nx \l__physicx_tmpa_tl { \tl_head:N \l_keys_key_str }
-    \token_if_eq_meaning:NNTF \l__physicx_tmpa_tl \c_backslash_str
+    \int_compare:nNnTF { \c_zero_int } =
+      { \char_value_catcode:n { \exp_last_unbraced:Ne ` { \tl_head:N \l_keys_key_str } } }
       { \use:n } { \use_ii:nn }
       {
         \cs_if_exist:cTF { \tl_tail:N \l_keys_key_str }
